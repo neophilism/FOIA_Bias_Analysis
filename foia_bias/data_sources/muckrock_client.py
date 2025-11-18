@@ -35,18 +35,23 @@ class SimpleMuckRockClient:
         """Stream paginated request objects from the REST API."""
         url = f"{self.base_url}/requests/"
         params = {k: v for k, v in params.items() if v is not None}
+        page_idx = 1
         while url:
             if self.rate_limit_seconds > 0:
                 # Respect the configured rate limit to avoid 429s for
                 # unauthenticated scrapes.
                 time.sleep(self.rate_limit_seconds)
+            logger.info("Requesting MuckRock page %s with params=%s", page_idx, params)
             resp = self.session.get(url, params=params if "?" not in url else None, timeout=60)
             resp.raise_for_status()
             payload = resp.json()
-            for row in payload.get("results", []):
+            results = payload.get("results", [])
+            logger.info("Received %s results from page %s", len(results), page_idx)
+            for row in results:
                 yield row
             url = payload.get("next")
             params = None  # after first request, pagination URLs include params
+            page_idx += 1
 
 
 class MuckRockIngestor(BaseIngestor):
@@ -92,6 +97,13 @@ class MuckRockIngestor(BaseIngestor):
             files = req.get("files", [])
             if not files:
                 continue
+            logger.info(
+                "Fetched request %s (%s) with %d file(s) from %s",
+                req.get("id"),
+                req.get("title"),
+                len(files),
+                req.get("agency_name"),
+            )
             yield DocumentRecord(
                 source="muckrock",
                 request_id=str(req["id"]),
@@ -113,14 +125,28 @@ class MuckRockIngestor(BaseIngestor):
     def download_files_for_record(self, record: DocumentRecord) -> list[Path]:
         """Download every PDF referenced in the record and persist it locally."""
         paths: list[Path] = []
-        for f in record.files:
+        for idx, f in enumerate(record.files, start=1):
             url = f.get("url")
             if not url:
                 continue
+            logger.info(
+                "Downloading file %d/%d for request %s from %s",
+                idx,
+                len(record.files),
+                record.request_id,
+                url,
+            )
             resp = requests.get(url, timeout=120)
             resp.raise_for_status()
             filename = f"{record.request_id}_{f.get('id', 'file')}.pdf"
             path = self.download_dir / filename
             path.write_bytes(resp.content)
+            logger.info(
+                "Stored %s bytes for request %s file %s at %s",
+                len(resp.content),
+                record.request_id,
+                f.get("id", "file"),
+                path,
+            )
             paths.append(path)
         return paths

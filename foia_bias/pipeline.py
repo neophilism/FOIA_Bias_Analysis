@@ -55,19 +55,31 @@ class Pipeline:
         """Download, extract, and label MuckRock responses."""
         source_cfg = self.config["sources"]["muckrock"]
         ingestor = MuckRockIngestor(source_cfg)
+        self.logger.info("Starting MuckRock ingestion (max %s requests)", ingestor.max_requests)
         records = []
-        for record in tqdm(list(ingestor.fetch()), desc="MuckRock requests"):
+        for idx, record in enumerate(tqdm(ingestor.fetch(), desc="MuckRock requests"), start=1):
+            self.logger.info(
+                "Processing MuckRock request %s (%s) [%d]", record.request_id, record.title, idx
+            )
             paths = ingestor.download_files_for_record(record)
+            if not paths:
+                self.logger.info("Request %s did not yield any downloadable files", record.request_id)
+                continue
             text = self.combine_texts(paths)
             labeled = self.label_text(text, record)
             if labeled:
                 records.append(labeled)
+                self.logger.info("Finished labeling request %s", record.request_id)
+            else:
+                self.logger.info("Skipping request %s because no text was extracted", record.request_id)
+        self.logger.info("Completed MuckRock ingestion with %s labeled records", len(records))
         self.save_records(records, "muckrock")
 
     def process_agency_logs(self) -> None:
         """Iterate through normalized agency logs row-by-row for labeling."""
         source_cfg = self.config["sources"]["agency_logs"]
         ingestor = FOIALogsDownloader(source_cfg)
+        self.logger.info("Starting agency log ingestion")
         records = []
         for record in tqdm(list(ingestor.fetch()), desc="Agency logs"):
             parquet_path = Path(record.files[0]["path"])
@@ -76,8 +88,15 @@ class Pipeline:
                 continue
             df = pd.read_parquet(parquet_path)
             for idx, row in df.iterrows():
+                self.logger.info(
+                    "Labeling agency log %s row %s (%s entries)",
+                    record.request_id,
+                    idx,
+                    len(row.index),
+                )
                 text = self.render_log_row_text(row)
                 if not text.strip():
+                    self.logger.info("Skipping empty log row %s for %s", idx, record.request_id)
                     continue
                 row_record = DocumentRecord(
                     source=record.source,
@@ -93,30 +112,35 @@ class Pipeline:
                 labeled = self.label_text(text, row_record)
                 if labeled:
                     records.append(labeled)
+        self.logger.info("Completed agency logs ingestion with %s labeled rows", len(records))
         self.save_records(records, "agency_logs")
 
     def process_reading_rooms(self) -> None:
         """Scrape PDFs from agency reading rooms and label their contents."""
         source_cfg = self.config["sources"]["reading_rooms"]
         ingestor = ReadingRoomScraper(source_cfg)
+        self.logger.info("Starting reading-room ingestion")
         records = []
         for record in tqdm(list(ingestor.fetch()), desc="Reading rooms"):
             text = self.combine_texts([Path(record.files[0]["path"])])
             labeled = self.label_text(text, record)
             if labeled:
                 records.append(labeled)
+        self.logger.info("Completed reading-room ingestion with %s labeled records", len(records))
         self.save_records(records, "reading_rooms")
 
     def process_foia_gov_annual(self) -> None:
         """Load FOIA.gov annual datasets and treat them as metadata only."""
         source_cfg = self.config["sources"]["foia_gov_annual"]
         ingestor = FOIAGovClient(source_cfg)
+        self.logger.info("Starting FOIA.gov annual ingestion")
         records = []
         for record in tqdm(list(ingestor.fetch()), desc="FOIA.gov annual"):
             text = Path(record.files[0]["path"]).read_text(encoding="utf-8")
             labeled = self.label_text(text, record, treat_as_metadata=True)
             if labeled:
                 records.append(labeled)
+        self.logger.info("Completed FOIA.gov ingestion with %s labeled records", len(records))
         self.save_records(records, "foia_gov")
 
     # ----------------------------- labeling helpers -----------------------------
@@ -134,6 +158,7 @@ class Pipeline:
     def label_text(self, text: str, record, treat_as_metadata: bool = False) -> Optional[dict]:
         """Apply the pre-filter + classifier to a single document record."""
         if not text:
+            self.logger.info("No text extracted for record %s; skipping", record.request_id)
             return None
         if treat_as_metadata:
             # Metadata-only sources (e.g., FOIA.gov stats) have no free-form
@@ -147,9 +172,13 @@ class Pipeline:
                 classification = self.default_non_political_label(
                     "Pre-filter classified document as non-political; full classifier not called."
                 )
+                self.logger.info(
+                    "Record %s skipped by prefilter; labeling as non-political", record.request_id
+                )
             else:
                 # This is the main path: run the structured classification
                 # prompt and capture its JSON response.
+                self.logger.info("Invoking classifier for record %s", record.request_id)
                 classification = classify_document(text, record.request_id, self.config)
         admin_info = get_admin_for_date(record.date_done, self.config.get("processing", {}).get("admin_mapping", {}).get("mark_transition_period_months", 0))
         return {
@@ -213,7 +242,9 @@ class Pipeline:
             if not value_str:
                 continue
             parts.append(f"{column}: {value_str}")
-        return "\n".join(parts)
+        rendered = "\n".join(parts)
+        self.logger.debug("Rendered log row with %d columns", len(parts))
+        return rendered
 
     def infer_log_row_date(self, row: pd.Series) -> Optional[str]:
         """Best-effort extraction of a decision date from agency logs."""
