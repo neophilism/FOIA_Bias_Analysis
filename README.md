@@ -120,6 +120,13 @@ requirements.txt        # Convenience dependency list
    dates to administrations, deduplicate near-identical texts, and run cheap keyword/NER
    prefilters to avoid unnecessary LLM calls.
 
+   The partisan dictionary for that prefilter is assembled automatically at startup by
+   downloading the GovTrack bulk people index (all members of Congress, 1993–2025) and
+   caching it under `data/cache/govtrack_people_index.json`. If your environment blocks
+   outbound HTTP the loader will fall back to a tiny static list and log a warning; set
+   `GOVTRACK_PEOPLE_INDEX_URL`/`GOVTRACK_PEOPLE_CACHE` to override the default URL or cache
+   location when needed.
+
 3. **LLM labeling**: Send political candidates to a JSON-structured classifier prompt that
    scores political relevance, wrongdoing probability, and favorability for each party. A
    separate embedding-based classifier supports a cheap "is this political" triage step.
