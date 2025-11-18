@@ -31,27 +31,35 @@ class SimpleMuckRockClient:
             # speed. Otherwise the caller should set a rate limit.
             self.session.headers["Authorization"] = f"Token {token}"
 
-    def iter_requests(self, **params: Any) -> Iterator[Dict[str, Any]]:
-        """Stream paginated request objects from the REST API."""
-        url = f"{self.base_url}/requests/"
-        params = {k: v for k, v in params.items() if v is not None}
+    def _paged_get(self, url: str, params: Dict[str, Any] | None = None) -> Iterator[Dict[str, Any]]:
+        """Shared pagination helper for /requests/ and /documents/ endpoints."""
+        params = {k: v for k, v in (params or {}).items() if v is not None}
         page_idx = 1
         while url:
             if self.rate_limit_seconds > 0:
                 # Respect the configured rate limit to avoid 429s for
                 # unauthenticated scrapes.
                 time.sleep(self.rate_limit_seconds)
-            logger.info("Requesting MuckRock page %s with params=%s", page_idx, params)
+            logger.info("Requesting %s page %s with params=%s", url, page_idx, params or "{}")
             resp = self.session.get(url, params=params if "?" not in url else None, timeout=60)
             resp.raise_for_status()
             payload = resp.json()
             results = payload.get("results", [])
-            logger.info("Received %s results from page %s", len(results), page_idx)
+            logger.info("Received %s results from %s page %s", len(results), url, page_idx)
             for row in results:
                 yield row
             url = payload.get("next")
             params = None  # after first request, pagination URLs include params
             page_idx += 1
+
+    def iter_requests(self, **params: Any) -> Iterator[Dict[str, Any]]:
+        """Stream paginated request objects from the REST API."""
+        yield from self._paged_get(f"{self.base_url}/requests/", params)
+
+    def iter_documents(self, request_id: str) -> Iterator[Dict[str, Any]]:
+        """Iterate through every released document for a specific request."""
+        url = f"{self.base_url}/requests/{request_id}/documents/"
+        yield from self._paged_get(url)
 
 
 class MuckRockIngestor(BaseIngestor):
@@ -94,14 +102,15 @@ class MuckRockIngestor(BaseIngestor):
         for req in self._iter_requests(params):
             if self.end_date and req.get("date_done") and req["date_done"] > self.end_date:
                 continue
-            files = req.get("files", [])
-            if not files:
+            documents = self._extract_documents(req)
+            if not documents:
+                logger.info("Request %s has no released documents; skipping", req.get("id"))
                 continue
             logger.info(
                 "Fetched request %s (%s) with %d file(s) from %s",
                 req.get("id"),
                 req.get("title"),
-                len(files),
+                len(documents),
                 req.get("agency_name"),
             )
             yield DocumentRecord(
@@ -113,7 +122,7 @@ class MuckRockIngestor(BaseIngestor):
                 date_submitted=req.get("date_submitted"),
                 date_done=req.get("date_done"),
                 requester=req.get("user_name"),
-                files=files,
+                files=documents,
             )
             count += 1
             if count >= self.max_requests:
@@ -126,8 +135,16 @@ class MuckRockIngestor(BaseIngestor):
         """Download every PDF referenced in the record and persist it locally."""
         paths: list[Path] = []
         for idx, f in enumerate(record.files, start=1):
-            url = f.get("url")
+            url = (
+                f.get("url")
+                or f.get("document_url")
+                or f.get("file", {}).get("url")
+                or f.get("document", {}).get("url")
+            )
             if not url:
+                logger.warning(
+                    "Skipping file %s for request %s because no URL was present", f.get("id"), record.request_id
+                )
                 continue
             logger.info(
                 "Downloading file %d/%d for request %s from %s",
@@ -138,7 +155,8 @@ class MuckRockIngestor(BaseIngestor):
             )
             resp = requests.get(url, timeout=120)
             resp.raise_for_status()
-            filename = f"{record.request_id}_{f.get('id', 'file')}.pdf"
+            suffix = self._infer_suffix(url, f)
+            filename = f.get("filename") or f"{record.request_id}_{f.get('id', idx)}{suffix}"
             path = self.download_dir / filename
             path.write_bytes(resp.content)
             logger.info(
@@ -150,3 +168,31 @@ class MuckRockIngestor(BaseIngestor):
             )
             paths.append(path)
         return paths
+
+    def _extract_documents(self, request_row: Dict[str, Any]) -> list[Dict[str, Any]]:
+        """Ensure we always return the list of released documents for a request."""
+        documents = request_row.get("documents") or request_row.get("files") or []
+        if documents:
+            return documents
+        request_id = request_row.get("id")
+        if not request_id:
+            return []
+        logger.info("Request %s missing embedded documents; fetching detail endpoint", request_id)
+        return list(self.client.iter_documents(str(request_id)))
+
+    @staticmethod
+    def _infer_suffix(url: str, payload: Dict[str, Any]) -> str:
+        """Pick a reasonable file extension for the downloaded artifact."""
+        parsed = Path(url.split("?")[0])
+        if parsed.suffix:
+            return parsed.suffix
+        filetype = payload.get("filetype") or payload.get("content_type")
+        if filetype:
+            mapping = {
+                "pdf": ".pdf",
+                "application/pdf": ".pdf",
+                "text/plain": ".txt",
+                "html": ".html",
+            }
+            return mapping.get(filetype.lower(), ".bin")
+        return ".bin"
