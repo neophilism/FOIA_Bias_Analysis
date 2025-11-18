@@ -18,12 +18,14 @@ class EmbeddingConfig:
 
 
 class PoliticalRelevanceClassifier:
+    """Trainable logistic regression on embeddings for cheap filtering."""
     def __init__(self, emb_config: EmbeddingConfig | None = None):
         self.emb_config = emb_config or EmbeddingConfig()
         self.model = LogisticRegression(max_iter=1000)
         self._is_fit = False
 
     def _embed(self, text: str) -> List[float]:
+        """Generate a single embedding vector using the configured model."""
         client = get_client()
         resp = client.embeddings.create(
             model=self.emb_config.model,
@@ -32,12 +34,14 @@ class PoliticalRelevanceClassifier:
         return resp.data[0].embedding
 
     def fit(self, texts: Iterable[str], labels: Iterable[int]) -> None:
+        """Fit the logistic regression classifier on embeddings."""
         vectors = np.vstack([self._embed(t) for t in texts])
         y = np.array(list(labels))
         self.model.fit(vectors, y)
         self._is_fit = True
 
     def predict_proba(self, text: str) -> float:
+        """Return the probability a text is political, raising if unfitted."""
         if not self._is_fit:
             raise RuntimeError("PoliticalRelevanceClassifier not fit")
         vector = np.array(self._embed(text)).reshape(1, -1)

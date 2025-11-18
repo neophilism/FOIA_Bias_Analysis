@@ -17,6 +17,7 @@ app.add_typer(analysis_app, name="analyze")
 
 
 def load_pipeline(config_path: str) -> Pipeline:
+    """Load config from disk and build a ready-to-run pipeline."""
     config = load_config(config_path)
     return Pipeline(config)
 

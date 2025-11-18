@@ -43,7 +43,8 @@ sources:
     api_token_env_var: "MUCKROCK_API_TOKEN"
     max_requests: 10000
     start_date: "2010-01-01"
-    end_date: null
+    end_date: "2025-01-20"
+    rate_limit_seconds: 1.0  # used when no API token is supplied
     download_dir: "data/muckrock/raw"
     text_cache_dir: "data/muckrock/text"
 
@@ -104,6 +105,7 @@ sources:
       - 2021
       - 2022
       - 2023
+      - 2024
     output_dir: "data/foia_gov"
 
 processing:
@@ -132,7 +134,7 @@ storage:
 analysis:
   include_only_with_admin_party: true
   min_year: 2010
-  max_year: 2099
+  max_year: 2024
   regression:
     include_agency_fixed_effects: true
     include_year_fixed_effects: true

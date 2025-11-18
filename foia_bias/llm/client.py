@@ -11,6 +11,7 @@ _client: OpenAI | None = None
 
 
 def get_client() -> OpenAI:
+    """Lazily instantiate the OpenAI SDK client using the env var key."""
     global _client
     if _client is None:
         api_key = os.getenv("OPENAI_API_KEY")
@@ -21,6 +22,7 @@ def get_client() -> OpenAI:
 
 
 def call_json_model(model: str, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+    """Send a JSON-mode request and parse its structured output."""
     client = get_client()
     response = client.responses.create(
         model=model,

@@ -11,11 +11,14 @@ from foia_bias.data_sources.base import BaseIngestor, DocumentRecord
 
 
 class FOIAGovClient(BaseIngestor):
+    """Fetch FOIA.gov annual JSON data for use as contextual metadata."""
+
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.output_dir = self.ensure_dir(config.get("output_dir", "data/foia_gov"))
 
     def fetch_year(self, base_url: str, year: int) -> Path:
+        """Download a single year of FOIA.gov data and persist it to disk."""
         url = f"{base_url}?year={year}"
         resp = requests.get(url, timeout=120)
         resp.raise_for_status()
@@ -30,6 +33,8 @@ class FOIAGovClient(BaseIngestor):
         if not base_url:
             raise ValueError("Missing FOIA.gov base_url in config")
         for year in years:
+            # Treat each year as an individual DocumentRecord so the pipeline
+            # can keep metadata isolated per dataset.
             path = self.fetch_year(base_url, year)
             yield DocumentRecord(
                 source="foia_gov",

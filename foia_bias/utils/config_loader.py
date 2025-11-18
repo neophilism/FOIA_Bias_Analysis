@@ -16,6 +16,9 @@ def load_config(path: str | Path) -> Dict[str, Any]:
 
     if path.suffix.lower() in {".yaml", ".yml"}:
         with path.open("r", encoding="utf-8") as f:
+            # YAML is the default in the repo because it handles nested
+            # structures more ergonomically. ``safe_load`` avoids executing
+            # arbitrary constructors.
             return yaml.safe_load(f)
     if path.suffix.lower() == ".json":
         with path.open("r", encoding="utf-8") as f:

@@ -5,6 +5,7 @@ import statsmodels.formula.api as smf
 
 
 def run_wrongdoing_model(df, include_agency_fe: bool = True, include_year_fe: bool = True):
+    """Estimate the cross-/same-party wrongdoing hypothesis via logit."""
     formula = "wrongdoing_any ~ same_party"
     if include_agency_fe:
         formula += " + C(agency)"
@@ -14,6 +15,7 @@ def run_wrongdoing_model(df, include_agency_fe: bool = True, include_year_fe: bo
 
 
 def run_favorability_model(df, include_agency_fe: bool = True, include_year_fe: bool = True):
+    """Estimate the favorability hypothesis via OLS on score deltas."""
     formula = "fav_diff ~ same_party"
     if include_agency_fe:
         formula += " + C(agency)"

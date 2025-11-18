@@ -10,6 +10,7 @@ _LOGGERS: dict[str, logging.Logger] = {}
 
 
 def configure_logging(config: Dict[str, Any]) -> None:
+    """Set up console + file logging according to config settings."""
     logging_config = config.get("logging", {})
     level = logging_config.get("level", "INFO")
     log_dir = Path(logging_config.get("log_dir", "logs"))
@@ -30,6 +31,7 @@ def configure_logging(config: Dict[str, Any]) -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
+    """Return a cached logger to keep handler configuration consistent."""
     if name not in _LOGGERS:
         _LOGGERS[name] = logging.getLogger(name)
     return _LOGGERS[name]

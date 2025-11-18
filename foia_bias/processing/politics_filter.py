@@ -48,11 +48,13 @@ def get_spacy_model():  # pragma: no cover - heavy dependency
 
 
 def keyword_score(text: str) -> int:
+    """Count obvious partisan keywords to short-circuit LLM calls."""
     lowered = text.lower()
     return sum(1 for kw in PARTY_KEYWORDS if kw in lowered)
 
 
 def extract_entities(text: str) -> List[str]:
+    """Run a lightweight NER pass to find proper nouns in the text."""
     nlp = get_spacy_model()
     doc = nlp(text[:5000])
     ents = [ent.text.lower() for ent in doc.ents if ent.label_ in {"PERSON", "ORG"}]
@@ -60,6 +62,7 @@ def extract_entities(text: str) -> List[str]:
 
 
 def match_partisan_entities(entities: Iterable[str]) -> List[Tuple[str, str]]:
+    """Match NER hits to a curated list of well-known partisan actors."""
     hits = []
     for ent in entities:
         key = ent.lower()
@@ -69,6 +72,7 @@ def match_partisan_entities(entities: Iterable[str]) -> List[Tuple[str, str]]:
 
 
 def is_potentially_partisan(text: str, keyword_threshold: int = 1) -> bool:
+    """Return True if the cheap filters think the text mentions US politics."""
     if keyword_score(text) >= keyword_threshold:
         return True
     ents = extract_entities(text)

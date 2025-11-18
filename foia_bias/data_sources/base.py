@@ -10,6 +10,7 @@ from foia_bias.utils.logging_utils import get_logger
 
 @dataclass
 class DocumentRecord:
+    """Normalized representation passed between ingestion + labeling layers."""
     source: str
     request_id: str
     agency: Optional[str]
@@ -32,6 +33,7 @@ class BaseIngestor:
         raise NotImplementedError
 
     def ensure_dir(self, path: str | Path) -> Path:
+        """Utility helper so subclasses get consistent directory creation."""
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         return path
