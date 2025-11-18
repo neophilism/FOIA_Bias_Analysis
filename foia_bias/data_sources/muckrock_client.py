@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, Iterator
 
 import requests
+from requests import HTTPError
 
 from foia_bias.data_sources.base import BaseIngestor, DocumentRecord
 from foia_bias.utils.logging_utils import get_logger
@@ -59,7 +60,29 @@ class SimpleMuckRockClient:
     def iter_documents(self, request_id: str) -> Iterator[Dict[str, Any]]:
         """Iterate through every released document for a specific request."""
         url = f"{self.base_url}/requests/{request_id}/documents/"
-        yield from self._paged_get(url)
+        try:
+            yield from self._paged_get(url)
+            return
+        except HTTPError as exc:
+            status = getattr(exc.response, "status_code", None)
+            if status != 404:
+                raise
+            logger.info(
+                "Documents endpoint missing for request %s; falling back to search API",
+                request_id,
+            )
+        fallback_params = {"request": request_id}
+        yield from self._paged_get(f"{self.base_url}/documents/", fallback_params)
+
+    def get_request(self, request_id: str) -> Dict[str, Any]:
+        """Fetch the detail view for a request, including embedded documents."""
+        if self.rate_limit_seconds > 0:
+            time.sleep(self.rate_limit_seconds)
+        url = f"{self.base_url}/requests/{request_id}/"
+        logger.info("Requesting detail for request %s", request_id)
+        resp = self.session.get(url, timeout=60)
+        resp.raise_for_status()
+        return resp.json()
 
 
 class MuckRockIngestor(BaseIngestor):
@@ -178,6 +201,25 @@ class MuckRockIngestor(BaseIngestor):
         if not request_id:
             return []
         logger.info("Request %s missing embedded documents; fetching detail endpoint", request_id)
+        try:
+            detail = self.client.get_request(str(request_id))
+        except HTTPError as exc:
+            logger.warning(
+                "Failed to fetch request detail for %s (%s); falling back to documents API",
+                request_id,
+                exc,
+            )
+            return list(self.client.iter_documents(str(request_id)))
+
+        documents = (
+            detail.get("documents")
+            or detail.get("files")
+            or detail.get("attachments")
+            or []
+        )
+        if documents:
+            return documents
+        logger.info("Detail endpoint lacked documents for %s; using documents API fallback", request_id)
         return list(self.client.iter_documents(str(request_id)))
 
     @staticmethod

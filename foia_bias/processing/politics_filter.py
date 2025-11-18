@@ -52,6 +52,24 @@ STATIC_ACTORS = {
     "republican national committee": "R",
 }
 
+# Presidents and vice presidents do not appear in the GovTrack dataset because
+# it is scoped to congressional roles.  We still want to match these names, so
+# we seed them manually and merge them into the GovTrack-derived dictionary at
+# load time.
+MANUAL_ACTORS = {
+    # Presidents
+    "bill clinton": "D",
+    "george w bush": "R",
+    "barack obama": "D",
+    "donald trump": "R",
+    "joe biden": "D",
+    # Vice Presidents
+    "al gore": "D",
+    "dick cheney": "R",
+    "mike pence": "R",
+    "kamala harris": "D",
+}
+
 
 def _ensure_cache_dir() -> None:
     GOVTRACK_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -236,6 +254,11 @@ def load_known_actors(
                         actors[variant] = "mixed"
                     else:
                         actors[variant] = party
+    # Add presidents/vice presidents explicitly so we always recognize them.
+    for name, party in MANUAL_ACTORS.items():
+        for variant in _name_variants(name):
+            actors[variant] = party
+
     LOGGER.info("Loaded %s partisan actors from GovTrack", len(actors))
     return actors
 
