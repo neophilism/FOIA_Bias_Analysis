@@ -35,11 +35,7 @@ requirements.txt        # Convenience dependency list
 
    ```bash
    export OPENAI_API_KEY="sk-..."
-   # Choose ONE of the following authentication paths for MuckRock
-   export MUCKROCK_API_TOKEN="mr-..."                 # token-based REST client
-   # or provide username/password for the python-muckrock SDK
-   # export MUCKROCK_USERNAME="you@example.com"
-   # export MUCKROCK_PASSWORD="super-secret"
+   export MUCKROCK_API_TOKEN="mr-..."
    ```
 
 3. **Run the CLI** to process sources and build labeled datasets:

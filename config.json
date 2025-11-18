@@ -44,8 +44,6 @@
     "muckrock": {
       "enabled": true,
       "api_token_env_var": "MUCKROCK_API_TOKEN",
-      "username_env_var": "MUCKROCK_USERNAME",
-      "password_env_var": "MUCKROCK_PASSWORD",
       "max_requests": 10000,
       "start_date": "2010-01-01",
       "end_date": null,
