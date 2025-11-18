@@ -55,47 +55,32 @@
       "enabled": true,
       "agencies": [
         {
-          "id": "doj",
-          "name": "Department of Justice",
-          "url": "https://example.gov/foia/doj_logs_2010_2024.csv",
+          "id": "doj_sample",
+          "name": "Department of Justice (sample)",
+          "url": "sample_data/agency_logs/doj_log_sample.csv",
           "log_type": "csv",
           "enabled": true
         },
         {
-          "id": "state",
-          "name": "Department of State",
-          "url": "https://example.gov/foia/state_logs_2010_2024.xlsx",
-          "log_type": "xlsx",
-          "enabled": true
-        },
-        {
-          "id": "dhs",
-          "name": "Department of Homeland Security",
-          "url": "https://example.gov/foia/dhs_logs_2010_2024.csv",
+          "id": "state_sample",
+          "name": "Department of State (sample)",
+          "url": "sample_data/agency_logs/state_log_sample.csv",
           "log_type": "csv",
-          "enabled": false
+          "enabled": true
         }
       ],
       "output_dir": "data/agency_logs",
       "text_cache_dir": "data/agency_text"
     },
     "reading_rooms": {
-      "enabled": true,
+      "enabled": false,
       "endpoints": [
         {
-          "id": "state_frus",
-          "name": "State Department Reading Room",
-          "base_url": "https://example.state.gov/foia-reading-room",
+          "id": "placeholder",
+          "name": "Placeholder",
+          "base_url": "https://example.invalid",
           "pagination_param": "page",
-          "max_pages": 100,
-          "enabled": true
-        },
-        {
-          "id": "epa_foia",
-          "name": "EPA FOIA Reading Room",
-          "base_url": "https://example.epa.gov/foia-reading-room",
-          "pagination_param": "page",
-          "max_pages": 50,
+          "max_pages": 1,
           "enabled": false
         }
       ],

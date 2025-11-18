@@ -15,6 +15,7 @@ foia_bias/
   llm/                  # Prompt templates and classification wrappers
   processing/           # Text extraction, admin mapping, filters, dedupe
   utils/                # Shared helpers (logging, concurrency, caching)
+sample_data/            # Tiny CSV fixtures used for smoke-testing agency logs
 config.yaml             # Primary experiment configuration
 config.json             # JSON mirror of the YAML config
 main.py                 # Typer-based CLI entry point
@@ -57,6 +58,12 @@ requirements.txt        # Convenience dependency list
    python main.py analyze wrongdoing --config config.yaml
    ```
 
+   > **Sample data for smoke tests:** The default configuration keeps the agency-log
+   > sources pointed at `sample_data/agency_logs/*.csv` so every fresh clone can run
+   > end-to-end without contacting placeholder domains such as `example.gov`. Update
+   > the `sources.agency_logs.agencies` block (or the JSON equivalent) with real
+   > URLs once you are ready to ingest full-sized FOIA logs.
+
 4. **Review outputs** in `data/processed/` (per-source labeled parquet files) and
    inspect logs under `logs/`.
 
@@ -95,7 +102,9 @@ requirements.txt        # Convenience dependency list
   Codespaces or any environment with <30 GB free space, consider disabling sources you
   do not need (`sources.*.enabled`), reducing `sources.muckrock.max_requests`, or
   pointing the `download_dir` paths to a mounted volume with more space before running
-  `python main.py run`.
+  `python main.py run`. The bundled sample agency logs reside in `sample_data/` and are
+  only a few kilobytes, so smoke tests stay lightweight even in constrained dev
+  containers.
 
 ## Core pipeline stages
 
