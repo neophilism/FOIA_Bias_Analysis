@@ -63,25 +63,20 @@ class Pipeline:
             "end_date": source_cfg.get("end_date"),
         }
         last_page_seen = int(checkpoint.get("last_page", 0)) if checkpoint else 0
+        last_date_done = checkpoint.get("last_date_done")
 
-        # Prefer resuming whenever we have any recorded last page. If the
-        # filters changed we log the mismatch but still resume to avoid
-        # reprocessing tens of thousands of earlier pages unnecessarily.
+        # Always resume from the next page if we have any recorded progress.
+        # Even when filters change, a resume is safer than restarting from
+        # page 1 because the MuckRock listing is stable and deduped by file
+        # ID downstream.
         if last_page_seen > 0:
             start_page = last_page_seen + 1
-            if checkpoint.get("query_key") and checkpoint.get("query_key") != query_key:
-                self.logger.info(
-                    "Resuming MuckRock ingestion from page %s despite filter change (prev=%s current=%s)",
-                    start_page,
-                    checkpoint.get("query_key"),
-                    query_key,
-                )
-            else:
-                self.logger.info(
-                    "Resuming MuckRock ingestion from page %s (checkpoint at %s)",
-                    start_page,
-                    state_path,
-                )
+            self.logger.info(
+                "Resuming MuckRock ingestion from page %s (checkpoint=%s, last_date_done=%s)",
+                start_page,
+                state_path,
+                last_date_done,
+            )
         else:
             start_page = 1
             checkpoint = {}
@@ -89,14 +84,24 @@ class Pipeline:
                 "Starting fresh MuckRock run (no usable checkpoint found at %s)",
                 state_path,
             )
-        self.logger.info("Starting MuckRock ingestion (max %s requests)", ingestor.max_requests)
+        effective_updated_after = last_date_done or source_cfg.get("start_date")
+        self.logger.info(
+            "Starting MuckRock ingestion (max %s requests) from page %s, updated_after=%s",
+            ingestor.max_requests,
+            start_page,
+            effective_updated_after,
+        )
         records = []
         processed_requests = 0
         last_checkpointed_page = checkpoint.get("last_page", 0)
-        for page_num, page_records in ingestor.fetch_pages(start_page=start_page):
+        for page_num, page_records in ingestor.fetch_pages(
+            start_page=start_page,
+            override_start_date=effective_updated_after,
+        ):
             self.logger.info(
                 "Processing MuckRock page %s containing %s requests", page_num, len(page_records)
             )
+            page_last_date = last_date_done
             for record in page_records:
                 processed_requests += 1
                 self.logger.info(
@@ -116,11 +121,19 @@ class Pipeline:
                 if labeled:
                     records.append(labeled)
                     self.logger.info("Finished labeling request %s", record.request_id)
+                    page_last_date = record.date_done or page_last_date
                 else:
                     self.logger.info(
                         "Skipping request %s because no text was extracted", record.request_id
                     )
-            save_checkpoint(state_path, {"last_page": page_num, "query_key": query_key})
+            save_checkpoint(
+                state_path,
+                {
+                    "last_page": page_num,
+                    "query_key": query_key,
+                    "last_date_done": page_last_date,
+                },
+            )
             last_checkpointed_page = page_num
             self.logger.info("Checkpointed completion of MuckRock page %s", page_num)
 

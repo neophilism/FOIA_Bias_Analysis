@@ -146,7 +146,11 @@ class MuckRockIngestor(BaseIngestor):
         # file.
         self._file_cache: dict[str, Path] = {}
 
-    def fetch_pages(self, start_page: int = 1) -> Iterator[tuple[int, list[DocumentRecord]]]:
+    def fetch_pages(
+        self,
+        start_page: int = 1,
+        override_start_date: str | None = None,
+    ) -> Iterator[tuple[int, list[DocumentRecord]]]:
         """Yield batches of records keyed by their originating request page."""
 
         params: Dict[str, Any] = {
@@ -154,8 +158,9 @@ class MuckRockIngestor(BaseIngestor):
             "has_files": True,
             "page_size": 100,
         }
-        if self.start_date:
-            params["updated_after"] = self.start_date
+        effective_start_date = override_start_date or self.start_date
+        if effective_start_date:
+            params["updated_after"] = effective_start_date
         count = 0
         for page_num, requests in self._iter_request_pages(params, start_page):
             page_records: list[DocumentRecord] = []
