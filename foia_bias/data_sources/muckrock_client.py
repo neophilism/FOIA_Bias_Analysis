@@ -151,18 +151,27 @@ class MuckRockIngestor(BaseIngestor):
 
     def download_files_for_record(self, record: DocumentRecord) -> list[Path]:
         """Download every PDF referenced in the record and persist it locally."""
+
         paths: list[Path] = []
         for idx, f in enumerate(record.files, start=1):
-            url = (
-                f.get("url")
-                or f.get("document_url")
-                or f.get("ffile")
-                or f.get("file", {}).get("url")
-                or f.get("document", {}).get("url")
-            )
+            cached_path = f.get("path")
+            if cached_path and Path(cached_path).exists():
+                path = Path(cached_path)
+                paths.append(path)
+                logger.info(
+                    "Reusing cached download for request %s file %s at %s",
+                    record.request_id,
+                    f.get("id", idx),
+                    path,
+                )
+                continue
+
+            url = self._resolve_file_url(f)
             if not url:
                 logger.warning(
-                    "Skipping file %s for request %s because no URL was present", f.get("id"), record.request_id
+                    "Skipping file %s for request %s because no URL was present",
+                    f.get("id"),
+                    record.request_id,
                 )
                 continue
             logger.info(
@@ -172,8 +181,17 @@ class MuckRockIngestor(BaseIngestor):
                 record.request_id,
                 url,
             )
-            resp = requests.get(url, timeout=120)
-            resp.raise_for_status()
+            try:
+                resp = requests.get(url, timeout=120)
+                resp.raise_for_status()
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Failed to download file %s for request %s: %s",
+                    f.get("id", idx),
+                    record.request_id,
+                    exc,
+                )
+                continue
             suffix = self._infer_suffix(url, f)
             filename = f.get("filename") or f"{record.request_id}_{f.get('id', idx)}{suffix}"
             path = self.download_dir / filename
@@ -188,12 +206,30 @@ class MuckRockIngestor(BaseIngestor):
             paths.append(path)
         return paths
 
+    @staticmethod
+    def _resolve_file_url(payload: Dict[str, Any]) -> str | None:
+        """Find the best download URL inside a file payload."""
+
+        candidates = [
+            payload.get("url"),
+            payload.get("document_url"),
+            payload.get("ffile"),
+            payload.get("file_url"),
+            payload.get("public_url"),
+            payload.get("file", {}).get("url") if isinstance(payload.get("file"), dict) else None,
+            payload.get("document", {}).get("url") if isinstance(payload.get("document"), dict) else None,
+        ]
+        for candidate in candidates:
+            if candidate:
+                return candidate
+        return None
+
     def _extract_documents(self, request_row: Dict[str, Any]) -> list[Dict[str, Any]]:
         """Ensure we always return the list of released documents for a request."""
 
         documents = request_row.get("documents") or request_row.get("files") or []
         if documents:
-            return documents
+            return self._materialize_embedded_documents(str(request_id), documents)
 
         request_id = request_row.get("id")
         if not request_id:
@@ -217,7 +253,7 @@ class MuckRockIngestor(BaseIngestor):
             or []
         )
         if documents:
-            return documents
+            return self._materialize_embedded_documents(str(request_id), documents)
 
         logger.info(
             "Detail endpoint lacked documents for %s; querying communications/files endpoints",
@@ -229,6 +265,7 @@ class MuckRockIngestor(BaseIngestor):
         """Walk the communications/files endpoints to collect released attachments."""
 
         aggregated: list[Dict[str, Any]] = []
+        file_counter = 0
         for comm in self.client.iter_communications(request_id):
             comm_id = comm.get("id")
             if not comm_id:
@@ -238,15 +275,79 @@ class MuckRockIngestor(BaseIngestor):
             if not files:
                 continue
             for file_payload in files:
-                enriched = dict(file_payload)
-                enriched.setdefault("communication_id", comm_id)
-                aggregated.append(enriched)
+                file_counter += 1
+                downloaded = self._download_file_payload(
+                    request_id,
+                    file_payload,
+                    file_counter,
+                )
+                if not downloaded:
+                    continue
+                downloaded.setdefault("communication_id", comm_id)
+                aggregated.append(downloaded)
         if not aggregated:
             logger.warning(
                 "No files returned via communications/files endpoints for request %s",
                 request_id,
             )
         return aggregated
+
+    def _materialize_embedded_documents(self, request_id: str, documents: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+        """Download any documents embedded directly in the request payload."""
+
+        enriched: list[Dict[str, Any]] = []
+        for idx, payload in enumerate(documents, start=1):
+            downloaded = self._download_file_payload(request_id, payload, idx)
+            if downloaded:
+                enriched.append(downloaded)
+        return enriched
+
+    def _download_file_payload(
+        self,
+        request_id: str,
+        payload: Dict[str, Any],
+        seq: int,
+    ) -> Dict[str, Any] | None:
+        """Download a single attachment and return its metadata."""
+
+        url = self._resolve_file_url(payload)
+        if not url:
+            logger.warning(
+                "Skipping request %s attachment %s because no URL is present",
+                request_id,
+                payload.get("id", seq),
+            )
+            return None
+
+        try:
+            resp = requests.get(url, timeout=120)
+            resp.raise_for_status()
+        except requests.RequestException as exc:
+            logger.warning(
+                "Failed to download attachment %s for request %s: %s",
+                payload.get("id", seq),
+                request_id,
+                exc,
+            )
+            return None
+
+        file_id = payload.get("id") or payload.get("file_id") or seq
+        suffix = self._infer_suffix(url, payload)
+        filename = payload.get("filename") or f"{request_id}_{file_id}{suffix}"
+        path = self.download_dir / filename
+        path.write_bytes(resp.content)
+        logger.info(
+            "Saved %s bytes for request %s file %s -> %s",
+            len(resp.content),
+            request_id,
+            file_id,
+            path,
+        )
+        enriched = dict(payload)
+        enriched["path"] = str(path)
+        enriched.setdefault("id", file_id)
+        enriched.setdefault("url", url)
+        return enriched
 
     @staticmethod
     def _infer_suffix(url: str, payload: Dict[str, Any]) -> str:
