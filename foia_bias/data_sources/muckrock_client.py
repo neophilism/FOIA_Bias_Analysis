@@ -106,6 +106,11 @@ class MuckRockIngestor(BaseIngestor):
             base_url=base_url,
             rate_limit_seconds=self.rate_limit_seconds,
         )
+        # Track which file IDs we have already materialized on disk so that
+        # repeated runs (or overlapping requests) do not redownload identical
+        # attachments. The values are `Path` objects pointing to the persisted
+        # file.
+        self._file_cache: dict[str, Path] = {}
 
     def fetch(self) -> Iterator[DocumentRecord]:
         """Yield completed requests that already have releasable files."""
@@ -319,6 +324,46 @@ class MuckRockIngestor(BaseIngestor):
             )
             return None
 
+        file_id = payload.get("id") or payload.get("file_id") or seq
+        cache_key = str(file_id)
+        suffix = self._infer_suffix(url, payload)
+        filename = payload.get("filename") or f"{request_id}_{file_id}{suffix}"
+        path = self.download_dir / filename
+        expected_size = self._parse_expected_size(payload)
+
+        # First check whether we already downloaded this file earlier in the
+        # run (via another request or communication). If so, simply reuse the
+        # stored path.
+        cached_path = self._file_cache.get(cache_key)
+        if cached_path and self._file_is_complete(cached_path, expected_size):
+            logger.info(
+                "Skipping download for request %s file %s; already cached at %s",
+                request_id,
+                file_id,
+                cached_path,
+            )
+            enriched = dict(payload)
+            enriched["path"] = str(cached_path)
+            enriched.setdefault("id", file_id)
+            enriched.setdefault("url", url)
+            return enriched
+
+        # Next check if a previous run left the file on disk at the expected
+        # path. If so, we can reuse it instead of hitting the network again.
+        if self._file_is_complete(path, expected_size):
+            logger.info(
+                "Reusing on-disk file for request %s attachment %s at %s",
+                request_id,
+                file_id,
+                path,
+            )
+            enriched = dict(payload)
+            enriched["path"] = str(path)
+            enriched.setdefault("id", file_id)
+            enriched.setdefault("url", url)
+            self._file_cache[cache_key] = path
+            return enriched
+
         try:
             resp = requests.get(url, timeout=120)
             resp.raise_for_status()
@@ -331,11 +376,8 @@ class MuckRockIngestor(BaseIngestor):
             )
             return None
 
-        file_id = payload.get("id") or payload.get("file_id") or seq
-        suffix = self._infer_suffix(url, payload)
-        filename = payload.get("filename") or f"{request_id}_{file_id}{suffix}"
-        path = self.download_dir / filename
         path.write_bytes(resp.content)
+        self._file_cache[cache_key] = path
         logger.info(
             "Saved %s bytes for request %s file %s -> %s",
             len(resp.content),
@@ -365,3 +407,36 @@ class MuckRockIngestor(BaseIngestor):
             }
             return mapping.get(filetype.lower(), ".bin")
         return ".bin"
+
+    @staticmethod
+    def _parse_expected_size(payload: Dict[str, Any]) -> int | None:
+        """Extract a byte-size hint if the payload exposes one."""
+
+        size_fields = ["size", "filesize", "file_size"]
+        for field in size_fields:
+            value = payload.get(field)
+            if value is None:
+                continue
+            try:
+                parsed = int(value)
+            except (TypeError, ValueError):
+                continue
+            if parsed > 0:
+                return parsed
+        return None
+
+    @staticmethod
+    def _file_is_complete(path: Path, expected_size: int | None = None) -> bool:
+        """Return True if an existing file appears to be a full download."""
+
+        if not path.exists():
+            return False
+        try:
+            size = path.stat().st_size
+        except OSError:
+            return False
+        if size == 0:
+            return False
+        if expected_size is not None and size != expected_size:
+            return False
+        return True
