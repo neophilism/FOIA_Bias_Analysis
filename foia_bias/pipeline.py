@@ -62,37 +62,33 @@ class Pipeline:
             "start_date": source_cfg.get("start_date"),
             "end_date": source_cfg.get("end_date"),
         }
-        # Older checkpoints may not include the query key; treat that as a
-        # match so we can still resume from the last seen page.
-        filters_match = checkpoint.get("query_key") == query_key or "query_key" not in checkpoint
         last_page_seen = int(checkpoint.get("last_page", 0)) if checkpoint else 0
 
-        had_checkpoint = bool(checkpoint)
-        if checkpoint and filters_match and last_page_seen > 0:
+        # Prefer resuming whenever we have any recorded last page. If the
+        # filters changed we log the mismatch but still resume to avoid
+        # reprocessing tens of thousands of earlier pages unnecessarily.
+        if last_page_seen > 0:
             start_page = last_page_seen + 1
-            self.logger.info(
-                "Resuming MuckRock ingestion from page %s (checkpoint at %s)",
-                start_page,
-                state_path,
-            )
-        else:
-            start_page = 1
-            checkpoint = {}
-            if had_checkpoint and not filters_match:
+            if checkpoint.get("query_key") and checkpoint.get("query_key") != query_key:
                 self.logger.info(
-                    "Starting fresh MuckRock run because filters changed (checkpoint at %s)",
-                    state_path,
-                )
-            elif not had_checkpoint:
-                self.logger.info(
-                    "Starting fresh MuckRock run (no usable checkpoint found at %s)",
-                    state_path,
+                    "Resuming MuckRock ingestion from page %s despite filter change (prev=%s current=%s)",
+                    start_page,
+                    checkpoint.get("query_key"),
+                    query_key,
                 )
             else:
                 self.logger.info(
-                    "Starting fresh MuckRock run because no last_page was recorded in %s",
+                    "Resuming MuckRock ingestion from page %s (checkpoint at %s)",
+                    start_page,
                     state_path,
                 )
+        else:
+            start_page = 1
+            checkpoint = {}
+            self.logger.info(
+                "Starting fresh MuckRock run (no usable checkpoint found at %s)",
+                state_path,
+            )
         self.logger.info("Starting MuckRock ingestion (max %s requests)", ingestor.max_requests)
         records = []
         processed_requests = 0
