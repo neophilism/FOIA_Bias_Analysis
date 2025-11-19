@@ -22,13 +22,9 @@ class SimpleMuckRockClient:
         self,
         token: str | None,
         base_url: str = "https://www.muckrock.com/api_v2",
-        documents_base_url: str | None = None,
         rate_limit_seconds: float = 0.0,
     ) -> None:
         self.base_url = base_url.rstrip("/")
-        self.documents_base_url = (
-            documents_base_url.rstrip("/") if documents_base_url else self.base_url
-        )
         self.session = requests.Session()
         self.rate_limit_seconds = rate_limit_seconds
         if token:
@@ -37,7 +33,7 @@ class SimpleMuckRockClient:
             self.session.headers["Authorization"] = f"Token {token}"
 
     def _paged_get(self, url: str, params: Dict[str, Any] | None = None) -> Iterator[Dict[str, Any]]:
-        """Shared pagination helper for /requests/ and /documents/ endpoints."""
+        """Shared pagination helper for all paginated endpoints."""
         params = {k: v for k, v in (params or {}).items() if v is not None}
         page_idx = 1
         while url:
@@ -61,62 +57,17 @@ class SimpleMuckRockClient:
         """Stream paginated request objects from the REST API."""
         yield from self._paged_get(f"{self.base_url}/requests/", params)
 
-    def iter_documents(self, request_id: str) -> Iterator[Dict[str, Any]]:
-        """Iterate through released documents with multi-endpoint fallbacks."""
+    def iter_communications(self, request_id: str) -> Iterator[Dict[str, Any]]:
+        """Iterate over every communication for a given request."""
 
-        attempts: list[tuple[str, Dict[str, Any] | None]] = []
-        seen: set[tuple[str, tuple[tuple[str, Any], ...]]] = set()
+        params = {"request": request_id, "page_size": 100}
+        yield from self._paged_get(f"{self.base_url}/communications/", params)
 
-        def _push(url: str | None, params: Dict[str, Any] | None = None) -> None:
-            if not url:
-                return
-            key = (url, tuple(sorted((params or {}).items())))
-            if key in seen:
-                return
-            seen.add(key)
-            attempts.append((url, params))
+    def iter_files(self, communication_id: str) -> Iterator[Dict[str, Any]]:
+        """Iterate over all files attached to a specific communication."""
 
-        # Try the dedicated documents API (v1) first, followed by the v2 path.
-        _push(f"{self.documents_base_url}/requests/{request_id}/documents/")
-        if self.documents_base_url != self.base_url:
-            _push(f"{self.base_url}/requests/{request_id}/documents/")
-
-        # Fallback to the search endpoint that accepts ?request=<id> filters.
-        _push(f"{self.documents_base_url}/documents/", {"request": request_id})
-        if self.documents_base_url != self.base_url:
-            _push(f"{self.base_url}/documents/", {"request": request_id})
-
-        for url, params in attempts:
-            try:
-                docs = list(self._paged_get(url, params))
-            except HTTPError as exc:
-                status = getattr(exc.response, "status_code", None)
-                if status in {401, 403, 404}:
-                    logger.info(
-                        "Documents endpoint %s returned %s for request %s; trying fallback",
-                        url,
-                        status,
-                        request_id,
-                    )
-                    continue
-                raise
-            if not docs:
-                logger.info(
-                    "Documents endpoint %s returned zero files for request %s; trying fallback",
-                    url,
-                    request_id,
-                )
-                continue
-            logger.info(
-                "Retrieved %s documents for request %s via %s",
-                len(docs),
-                request_id,
-                url,
-            )
-            for doc in docs:
-                yield doc
-            return
-        logger.warning("Unable to retrieve documents for request %s", request_id)
+        params = {"communication": communication_id, "page_size": 100}
+        yield from self._paged_get(f"{self.base_url}/files/", params)
 
     def get_request(self, request_id: str) -> Dict[str, Any]:
         """Fetch the detail view for a request, including embedded documents."""
@@ -139,7 +90,6 @@ class MuckRockIngestor(BaseIngestor):
         self.start_date = config.get("start_date")
         self.end_date = config.get("end_date")
         base_url = config.get("base_url", "https://www.muckrock.com/api_v2")
-        documents_base_url = config.get("documents_base_url", "https://www.muckrock.com/api_v1")
         default_rate = 0.0 if token else 1.0
         self.rate_limit_seconds = float(config.get("rate_limit_seconds", default_rate))
 
@@ -154,7 +104,6 @@ class MuckRockIngestor(BaseIngestor):
         self.client = SimpleMuckRockClient(
             token=token,
             base_url=base_url,
-            documents_base_url=documents_base_url,
             rate_limit_seconds=self.rate_limit_seconds,
         )
 
@@ -207,6 +156,7 @@ class MuckRockIngestor(BaseIngestor):
             url = (
                 f.get("url")
                 or f.get("document_url")
+                or f.get("ffile")
                 or f.get("file", {}).get("url")
                 or f.get("document", {}).get("url")
             )
@@ -240,22 +190,25 @@ class MuckRockIngestor(BaseIngestor):
 
     def _extract_documents(self, request_row: Dict[str, Any]) -> list[Dict[str, Any]]:
         """Ensure we always return the list of released documents for a request."""
+
         documents = request_row.get("documents") or request_row.get("files") or []
         if documents:
             return documents
+
         request_id = request_row.get("id")
         if not request_id:
             return []
+
         logger.info("Request %s missing embedded documents; fetching detail endpoint", request_id)
         try:
             detail = self.client.get_request(str(request_id))
         except HTTPError as exc:
             logger.warning(
-                "Failed to fetch request detail for %s (%s); falling back to documents API",
+                "Failed to fetch request detail for %s (%s); falling back to communications API",
                 request_id,
                 exc,
             )
-            return list(self.client.iter_documents(str(request_id)))
+            return self._fetch_files_via_communications(str(request_id))
 
         documents = (
             detail.get("documents")
@@ -265,8 +218,35 @@ class MuckRockIngestor(BaseIngestor):
         )
         if documents:
             return documents
-        logger.info("Detail endpoint lacked documents for %s; using documents API fallback", request_id)
-        return list(self.client.iter_documents(str(request_id)))
+
+        logger.info(
+            "Detail endpoint lacked documents for %s; querying communications/files endpoints",
+            request_id,
+        )
+        return self._fetch_files_via_communications(str(request_id))
+
+    def _fetch_files_via_communications(self, request_id: str) -> list[Dict[str, Any]]:
+        """Walk the communications/files endpoints to collect released attachments."""
+
+        aggregated: list[Dict[str, Any]] = []
+        for comm in self.client.iter_communications(request_id):
+            comm_id = comm.get("id")
+            if not comm_id:
+                continue
+            logger.info("Fetching files for request %s communication %s", request_id, comm_id)
+            files = list(self.client.iter_files(str(comm_id)))
+            if not files:
+                continue
+            for file_payload in files:
+                enriched = dict(file_payload)
+                enriched.setdefault("communication_id", comm_id)
+                aggregated.append(enriched)
+        if not aggregated:
+            logger.warning(
+                "No files returned via communications/files endpoints for request %s",
+                request_id,
+            )
+        return aggregated
 
     @staticmethod
     def _infer_suffix(url: str, payload: Dict[str, Any]) -> str:

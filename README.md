@@ -114,7 +114,10 @@ requirements.txt        # Convenience dependency list
 
 1. **Ingestion**: Pull FOIA data from MuckRock, agency logs, reading rooms, and FOIA.gov
    annual stats. Each source module handles pagination, download directories, and
-   metadata normalization.
+   metadata normalization. The MuckRock client specifically walks the `/communications/`
+   and `/files/` endpoints for every completed request so the pipeline downloads the same
+   released attachments users see on the site (the legacy `/documents/` API no longer
+   returns results).
 
 2. **Preprocessing**: Convert PDFs to text with `pdfplumber` + OCR fallback, map decision
    dates to administrations, deduplicate near-identical texts, and run cheap keyword/NER
