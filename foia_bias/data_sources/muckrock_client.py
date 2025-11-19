@@ -189,8 +189,9 @@ class MuckRockIngestor(BaseIngestor):
                 count += 1
                 if count >= self.max_requests:
                     break
-            if page_records:
-                yield page_num, page_records
+            # Yield the page even if no documents were usable so callers can
+            # checkpoint progress across runs.
+            yield page_num, page_records
             if count >= self.max_requests:
                 break
 
