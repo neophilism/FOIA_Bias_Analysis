@@ -1,8 +1,16 @@
-> **Start here:** [Development plan](docs/DEVELOPMENT_PLAN.md) · [Handoff status](docs/HANDOFF_STATUS.md) · [Canonical structured PR registry](registry/prs.json).
-> The comprehensive completion plan was reconstructed on October 11, 2026 from documented scope and implementation evidence. Original numbered-plan fidelity and operational certification remain unverified.
-> The implementation guide below describes existing code; the plan records known limitations, including incomplete temporal coverage, truncated labeling, checkpoint durability and unwired analysis options. Do not treat the default all-source run as an offline smoke test or production acceptance.
-
 # FOIA Bias Analysis
+
+Analyze the massive shared corpus compiled by [FOIA_Aggregator](https://github.com/neophilism/FOIA_Aggregator). The Aggregator owns collection, storage, archive deduplication and extraction/OCR across all included sources. Bias consumes a versioned read-only snapshot, labels eligible full text and performs statistical analysis; MuckRock is one source within that corpus.
+
+Start with the [development plan](docs/DEVELOPMENT_PLAN.md), [handoff status](docs/HANDOFF_STATUS.md) and [canonical structured PR registry](registry/prs.json). Plan version 3 records the owner's October 11 corpus correction and comparable-period clarification. The completed-term comparison excludes the ongoing incomplete second Trump term; the Aggregator can continue collecting newer records. Equal-duration term windows and exposure-normalized pooled comparisons are explicit requirements.
+
+The current application code remains a legacy source-ingestion scaffold. The corpus consumer is planned, not yet implemented. Next: **FBA-01**, then the corpus identity/checkpoint/import milestones. Validate documentation with `python scripts/validate_plan.py`.
+
+## Historical implementation reference
+
+The guide below describes existing legacy code for migration/reuse. Its direct source commands and source-specific defaults are not the target production workflow defined by the current plan.
+
+### Legacy FOIA Bias implementation
 
 Automated, end-to-end pipeline for building a labeled corpus of FOIA disclosures and
 quantifying potential partisan bias in what gets released. The repository packages a
@@ -185,4 +193,5 @@ and year fixed effects plus clustered standard errors.
 ## License
 
 MIT License. See `LICENSE`.
+
 
