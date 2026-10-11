@@ -1,11 +1,423 @@
 {
   "schemaVersion": 1,
   "repository": "neophilism/FOIA_Bias_Analysis",
-  "roadmapVersion": 1,
-  "planVerified": false,
-  "plannedPrCount": 0,
-  "observedAt": "2026-10-11T17:38:54.828Z",
-  "units": [],
+  "roadmapVersion": 2,
+  "planVerified": true,
+  "plannedPrCount": 16,
+  "observedAt": "2026-10-11T20:39:09.617Z",
+  "planProvenance": {
+    "baselineDate": "2026-10-11",
+    "authority": "Current owner instruction to complete plans and registry integration; Engine-Room issue 71 recovered scope; repository evidence distinguished in plan",
+    "planPath": "docs/DEVELOPMENT_PLAN.md",
+    "handoffPath": "docs/HANDOFF_STATUS.md",
+    "enumeration": "newly reconstructed completion work packages",
+    "historicalPlanVerified": false,
+    "handoffCertified": false,
+    "planVerifiedMeaning": "Current enumerated plan and registry consistency only; not transcript fidelity, implementation acceptance, live operation or approval of historical claims",
+    "priorEvidenceMeaning": "Historical PRs are preserved as related evidence; they are not completion mappings for newly scoped remediation acceptance",
+    "upstreamPlan": {
+      "repository": "neophilism/FOIA_Aggregator",
+      "commit": "62fe82950963dcc0dde2003f094047d65bf79a9d",
+      "path": "docs/DEVELOPMENT_PLAN.md",
+      "requiredEvidence": "FC-13/FC-14 actual versioned corpus export and coverage review; completion not verified"
+    }
+  },
+  "units": [
+    {
+      "id": "FBA-01",
+      "title": "Reproducible offline baseline and configuration",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-02",
+        "BR-09",
+        "BR-10"
+      ],
+      "dependsOn": [],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-01"
+    },
+    {
+      "id": "FBA-02",
+      "title": "Provenance ledger and stage data contracts",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-03",
+        "BR-05",
+        "BR-07",
+        "BR-10"
+      ],
+      "dependsOn": [
+        "FBA-01"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1,
+        2
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-02"
+    },
+    {
+      "id": "FBA-03",
+      "title": "Lossless checkpoints and restart migration",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-05"
+      ],
+      "dependsOn": [
+        "FBA-02"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        15,
+        16,
+        17,
+        19,
+        20,
+        21
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-03"
+    },
+    {
+      "id": "FBA-04",
+      "title": "Complete MuckRock request and attachment acquisition",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-03",
+        "BR-05"
+      ],
+      "dependsOn": [
+        "FBA-02",
+        "FBA-03"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        3,
+        5,
+        9,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-04"
+    },
+    {
+      "id": "FBA-05",
+      "title": "Safe storage and identity-preserving deduplication",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-05",
+        "BR-10"
+      ],
+      "dependsOn": [
+        "FBA-02",
+        "FBA-04"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        14,
+        15
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-05"
+    },
+    {
+      "id": "FBA-06",
+      "title": "Agency logs, reading rooms and contextual annual data",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-07"
+      ],
+      "dependsOn": [
+        "FBA-02",
+        "FBA-05"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1,
+        2,
+        8
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-06"
+    },
+    {
+      "id": "FBA-07",
+      "title": "Full-text extraction and OCR",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-03",
+        "BR-04"
+      ],
+      "dependsOn": [
+        "FBA-05"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1,
+        9,
+        13,
+        14
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-07"
+    },
+    {
+      "id": "FBA-08",
+      "title": "Administration, temporal scope and historical actor mapping",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-02",
+        "BR-06"
+      ],
+      "dependsOn": [
+        "FBA-02",
+        "FBA-06"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        5,
+        10,
+        11,
+        12,
+        14
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-08"
+    },
+    {
+      "id": "FBA-09",
+      "title": "Automated all-document, full-text labeling",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-01",
+        "BR-03",
+        "BR-04",
+        "BR-10"
+      ],
+      "dependsOn": [
+        "FBA-07",
+        "FBA-08"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-09"
+    },
+    {
+      "id": "FBA-10",
+      "title": "Resumable labeling, usage controls and full-corpus accounting",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-04",
+        "BR-05"
+      ],
+      "dependsOn": [
+        "FBA-03",
+        "FBA-09"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        16,
+        17,
+        19,
+        20,
+        21
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-10"
+    },
+    {
+      "id": "FBA-11",
+      "title": "Analytical cohorts and deterministic derived variables",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-01",
+        "BR-02",
+        "BR-07",
+        "BR-08"
+      ],
+      "dependsOn": [
+        "FBA-06",
+        "FBA-08",
+        "FBA-10"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1,
+        2
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-11"
+    },
+    {
+      "id": "FBA-12",
+      "title": "Regressions, diagnostics and honest estimands",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-01",
+        "BR-08"
+      ],
+      "dependsOn": [
+        "FBA-11"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        1
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-12"
+    },
+    {
+      "id": "FBA-13",
+      "title": "Automated annotation quality and robustness",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-01",
+        "BR-04",
+        "BR-08"
+      ],
+      "dependsOn": [
+        "FBA-09",
+        "FBA-12"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-13"
+    },
+    {
+      "id": "FBA-14",
+      "title": "Upstream coverage and research eligibility review",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-02",
+        "BR-09"
+      ],
+      "dependsOn": [
+        "FBA-06",
+        "FBA-11",
+        "FBA-13"
+      ],
+      "externalPrerequisites": [
+        "EXT-CORPUS"
+      ],
+      "priorEvidencePrs": [],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-14"
+    },
+    {
+      "id": "FBA-15",
+      "title": "Durable operations, recovery and release packaging",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-05",
+        "BR-10"
+      ],
+      "dependsOn": [
+        "FBA-03",
+        "FBA-05",
+        "FBA-10",
+        "FBA-12"
+      ],
+      "externalPrerequisites": [],
+      "priorEvidencePrs": [
+        6,
+        7
+      ],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-15"
+    },
+    {
+      "id": "FBA-16",
+      "title": "Reproducible release and independent handoff evidence",
+      "origin": "addition",
+      "prs": [],
+      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "requirementIds": [
+        "BR-01",
+        "BR-02",
+        "BR-03",
+        "BR-04",
+        "BR-05",
+        "BR-06",
+        "BR-07",
+        "BR-08",
+        "BR-09",
+        "BR-10"
+      ],
+      "dependsOn": [
+        "FBA-01",
+        "FBA-02",
+        "FBA-03",
+        "FBA-04",
+        "FBA-05",
+        "FBA-06",
+        "FBA-07",
+        "FBA-08",
+        "FBA-09",
+        "FBA-10",
+        "FBA-11",
+        "FBA-12",
+        "FBA-13",
+        "FBA-14",
+        "FBA-15"
+      ],
+      "externalPrerequisites": [
+        "EXT-CORPUS",
+        "authorized bounded source/provider acceptance"
+      ],
+      "priorEvidencePrs": [],
+      "planPath": "docs/DEVELOPMENT_PLAN.md",
+      "planSection": "FBA-16"
+    }
+  ],
   "pullRequests": [
     {
       "id": 3028252901,
