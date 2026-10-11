@@ -1,3 +1,5 @@
+> **PR roadmap:** [`registry/roadmap.json`](registry/roadmap.json). No verified development plan has yet been recovered; do not invent totals.
+
 # FOIA Bias Analysis
 
 Automated, end-to-end pipeline for building a labeled corpus of FOIA disclosures and
