@@ -1,4 +1,6 @@
-> **PR roadmap:** [`registry/roadmap.json`](registry/roadmap.json). No verified development plan has yet been recovered; do not invent totals.
+> **Start here:** [Development plan](docs/DEVELOPMENT_PLAN.md) · [Handoff status](docs/HANDOFF_STATUS.md) · [Canonical structured PR registry](registry/prs.json).
+> The comprehensive completion plan was reconstructed on October 11, 2026 from documented scope and implementation evidence. Original numbered-plan fidelity and operational certification remain unverified.
+> The implementation guide below describes existing code; the plan records known limitations, including incomplete temporal coverage, truncated labeling, checkpoint durability and unwired analysis options. Do not treat the default all-source run as an offline smoke test or production acceptance.
 
 # FOIA Bias Analysis
 
@@ -183,3 +185,4 @@ and year fixed effects plus clustered standard errors.
 ## License
 
 MIT License. See `LICENSE`.
+

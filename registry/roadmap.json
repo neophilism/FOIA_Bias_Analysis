@@ -1,10 +1,7 @@
 {
   "repository": "neophilism/FOIA_Bias_Analysis",
-  "title": "FOIA_Bias_Analysis",
-  "version": 1,
-  "planVerified": false,
-  "plannedPrCount": 0,
-  "milestones": [],
-  "verificationNeeded": "The repository describes the product and pipeline but does not contain a verified enumerated development/PR plan.",
-  "sourceFiles": []
+  "deprecated": true,
+  "redirectTo": "registry/prs.json",
+  "developmentPlan": "docs/DEVELOPMENT_PLAN.md",
+  "instructions": "Canonical structured PR units, planned totals and completion mappings live only in registry/prs.json. Read docs/DEVELOPMENT_PLAN.md and docs/HANDOFF_STATUS.md. Do not edit a duplicate milestone list here."
 }
