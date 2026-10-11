@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "repository": "neophilism/FOIA_Bias_Analysis",
-  "roadmapVersion": 2,
+  "roadmapVersion": 3,
   "planVerified": true,
   "plannedPrCount": 16,
-  "observedAt": "2026-10-11T20:39:09.617Z",
+  "observedAt": "2026-10-11T23:06:08.067Z",
   "planProvenance": {
     "baselineDate": "2026-10-11",
-    "authority": "Current owner instruction to complete plans and registry integration; Engine-Room issue 71 recovered scope; repository evidence distinguished in plan",
+    "authority": "Current owner instruction to complete plans and registry integration; Engine-Room issue 71 recovered scope; repository evidence distinguished in plan; direct owner corrections October 11 2026: Aggregator full corpus is the analysis input; comparable completed periods exclude ongoing second Trump term",
     "planPath": "docs/DEVELOPMENT_PLAN.md",
     "handoffPath": "docs/HANDOFF_STATUS.md",
     "enumeration": "newly reconstructed completion work packages",
@@ -20,19 +20,41 @@
       "commit": "62fe82950963dcc0dde2003f094047d65bf79a9d",
       "path": "docs/DEVELOPMENT_PLAN.md",
       "requiredEvidence": "FC-13/FC-14 actual versioned corpus export and coverage review; completion not verified"
-    }
+    },
+    "corpusAuthority": {
+      "repository": "neophilism/FOIA_Aggregator",
+      "input": "versioned read-only full-corpus snapshot/export with complete extracted text",
+      "sourcePolicy": "all archive source families subject to explicit date/jurisdiction/record-type cohort rules; MuckRock is one included source",
+      "collectionOwner": "neophilism/FOIA_Aggregator",
+      "analysisOwner": "neophilism/FOIA_Bias_Analysis",
+      "independentSourceCrawling": false,
+      "periodPolicy": "compare completed equal-duration presidential terms; normalize pooled administrations; exclude incomplete ongoing second Trump term from this cohort",
+      "archiveAfterCutoff": true
+    },
+    "amendments": [
+      {
+        "date": "2026-10-11",
+        "requirements": [
+          "BR-11",
+          "BR-12"
+        ],
+        "source": "direct owner correction and clarification in current conversation",
+        "effect": "Supersedes standalone MuckRock acquisition framing; analytical completed-term cutoff does not stop Aggregator archival collection"
+      }
+    ]
   },
   "units": [
     {
       "id": "FBA-01",
-      "title": "Reproducible offline baseline and configuration",
+      "title": "Reproducible corpus-consumer baseline and configuration",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-02",
         "BR-09",
-        "BR-10"
+        "BR-10",
+        "BR-11"
       ],
       "dependsOn": [],
       "externalPrerequisites": [],
@@ -50,15 +72,16 @@
     },
     {
       "id": "FBA-02",
-      "title": "Provenance ledger and stage data contracts",
+      "title": "Aggregator record identity and analytical provenance ledger",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-03",
         "BR-05",
         "BR-07",
-        "BR-10"
+        "BR-10",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-01"
@@ -73,12 +96,13 @@
     },
     {
       "id": "FBA-03",
-      "title": "Lossless checkpoints and restart migration",
+      "title": "Lossless corpus-consumer and labeling checkpoints",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
-        "BR-05"
+        "BR-05",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-02"
@@ -97,41 +121,36 @@
     },
     {
       "id": "FBA-04",
-      "title": "Complete MuckRock request and attachment acquisition",
+      "title": "Full Aggregator corpus snapshot ingestion",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-03",
-        "BR-05"
+        "BR-05",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-02",
         "FBA-03"
       ],
-      "externalPrerequisites": [],
-      "priorEvidencePrs": [
-        3,
-        5,
-        9,
-        11,
-        12,
-        13,
-        14,
-        15
+      "externalPrerequisites": [
+        "Aggregator FC-13 implemented versioned export contract for live consumption"
       ],
+      "priorEvidencePrs": [],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
       "planSection": "FBA-04"
     },
     {
       "id": "FBA-05",
-      "title": "Safe storage and identity-preserving deduplication",
+      "title": "Shared-corpus deduplication and legacy artifact reconciliation",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-05",
-        "BR-10"
+        "BR-10",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-02",
@@ -147,12 +166,13 @@
     },
     {
       "id": "FBA-06",
-      "title": "Agency logs, reading rooms and contextual annual data",
+      "title": "Shared-corpus request logs and annual context integration",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
-        "BR-07"
+        "BR-07",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-02",
@@ -169,18 +189,21 @@
     },
     {
       "id": "FBA-07",
-      "title": "Full-text extraction and OCR",
+      "title": "Aggregator full-text and extraction completeness validation",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-03",
-        "BR-04"
+        "BR-04",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-05"
       ],
-      "externalPrerequisites": [],
+      "externalPrerequisites": [
+        "Aggregator full extracted-text/hash/status contract for live analysis"
+      ],
       "priorEvidencePrs": [
         1,
         9,
@@ -195,10 +218,12 @@
       "title": "Administration, temporal scope and historical actor mapping",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-02",
-        "BR-06"
+        "BR-06",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-02",
@@ -220,12 +245,13 @@
       "title": "Automated all-document, full-text labeling",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-01",
         "BR-03",
         "BR-04",
-        "BR-10"
+        "BR-10",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-07",
@@ -243,10 +269,11 @@
       "title": "Resumable labeling, usage controls and full-corpus accounting",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-04",
-        "BR-05"
+        "BR-05",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-03",
@@ -268,12 +295,14 @@
       "title": "Analytical cohorts and deterministic derived variables",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-01",
         "BR-02",
         "BR-07",
-        "BR-08"
+        "BR-08",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-06",
@@ -293,10 +322,12 @@
       "title": "Regressions, diagnostics and honest estimands",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-01",
-        "BR-08"
+        "BR-08",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-11"
@@ -313,11 +344,13 @@
       "title": "Automated annotation quality and robustness",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-01",
         "BR-04",
-        "BR-08"
+        "BR-08",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-09",
@@ -330,13 +363,15 @@
     },
     {
       "id": "FBA-14",
-      "title": "Upstream coverage and research eligibility review",
+      "title": "Full shared-corpus coverage and research eligibility review",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-02",
-        "BR-09"
+        "BR-09",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-06",
@@ -352,13 +387,14 @@
     },
     {
       "id": "FBA-15",
-      "title": "Durable operations, recovery and release packaging",
+      "title": "Scalable analytical operations, recovery and release packaging",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-05",
-        "BR-10"
+        "BR-10",
+        "BR-11"
       ],
       "dependsOn": [
         "FBA-03",
@@ -379,7 +415,7 @@
       "title": "Reproducible release and independent handoff evidence",
       "origin": "addition",
       "prs": [],
-      "scopeBasis": "2026-10-11 engineering reconstruction of documented inherited scope and completion gaps; not original approved milestone titles",
+      "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-01",
         "BR-02",
@@ -390,7 +426,9 @@
         "BR-07",
         "BR-08",
         "BR-09",
-        "BR-10"
+        "BR-10",
+        "BR-11",
+        "BR-12"
       ],
       "dependsOn": [
         "FBA-01",
@@ -419,6 +457,21 @@
     }
   ],
   "pullRequests": [
+    {
+      "id": 4822204636,
+      "number": 22,
+      "title": "docs: complete FOIA Bias Analysis plan and independent-account handoff",
+      "url": "https://github.com/neophilism/FOIA_Bias_Analysis/pull/22",
+      "state": "closed",
+      "draft": false,
+      "createdAt": "2026-10-11T20:43:24.000Z",
+      "updatedAt": "2026-10-11T20:44:12.000Z",
+      "closedAt": "2026-10-11T20:44:12.000Z",
+      "mergedAt": "2026-10-11T20:44:12.000Z",
+      "headSha": "20a709ca9843c3d4d5b405c37b834f31a22911dc",
+      "baseRef": "main",
+      "mergeCommitSha": "52db8f9a0f661f73dbc058dbb503d45cc386613b"
+    },
     {
       "id": 3028252901,
       "number": 21,
