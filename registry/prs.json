@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "repository": "neophilism/FOIA_Bias_Analysis",
-  "roadmapVersion": 3,
+  "roadmapVersion": 4,
   "planVerified": true,
   "plannedPrCount": 16,
   "observedAt": "2026-10-11T23:06:08.067Z",
@@ -68,7 +68,12 @@
         8
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-01"
+      "planSection": "FBA-01",
+      "contributingPrs": [
+        1,
+        6,
+        7
+      ]
     },
     {
       "id": "FBA-02",
@@ -117,7 +122,14 @@
         21
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-03"
+      "planSection": "FBA-03",
+      "contributingPrs": [
+        16,
+        17,
+        19,
+        20,
+        21
+      ]
     },
     {
       "id": "FBA-04",
@@ -185,7 +197,11 @@
         8
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-06"
+      "planSection": "FBA-06",
+      "contributingPrs": [
+        2,
+        8
+      ]
     },
     {
       "id": "FBA-07",
@@ -238,7 +254,12 @@
         14
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-08"
+      "planSection": "FBA-08",
+      "contributingPrs": [
+        10,
+        11,
+        12
+      ]
     },
     {
       "id": "FBA-09",
@@ -787,5 +808,6 @@
       "baseRef": "main",
       "mergeCommitSha": "208ef4e48c5bd8226a269d742b02708150977379"
     }
-  ]
+  ],
+  "contributionEvidenceNote": "Historical MuckRock/data pipeline PRs contribute reusable parts to the newer full FOIA Aggregator corpus plan; they do not complete any of its sixteen current work units."
 }
