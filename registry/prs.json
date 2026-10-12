@@ -48,7 +48,9 @@
       "id": "FBA-01",
       "title": "Reproducible corpus-consumer baseline and configuration",
       "origin": "addition",
-      "prs": [],
+      "prs": [
+        1
+      ],
       "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-02",
@@ -98,7 +100,9 @@
       "id": "FBA-03",
       "title": "Lossless corpus-consumer and labeling checkpoints",
       "origin": "addition",
-      "prs": [],
+      "prs": [
+        16
+      ],
       "scopeBasis": "2026-10-11 reconstructed completion package implementing inherited scope and direct owner BR-11/BR-12 architecture/period clarification; historical PRs are migration evidence",
       "requirementIds": [
         "BR-05",
