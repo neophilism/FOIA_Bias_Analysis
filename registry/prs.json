@@ -1,6 +1,7 @@
 {
-  "schemaVersion": 1,
   "repository": "neophilism/FOIA_Bias_Analysis",
+  "developmentPlan": "docs/DEVELOPMENT_PLAN.md",
+  "schemaVersion": 1,
   "roadmapVersion": 3,
   "planVerified": true,
   "plannedPrCount": 16,
@@ -68,7 +69,9 @@
         8
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-01"
+      "planSection": "FBA-01",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-02",
@@ -92,7 +95,9 @@
         2
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-02"
+      "planSection": "FBA-02",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-03",
@@ -117,7 +122,9 @@
         21
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-03"
+      "planSection": "FBA-03",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-04",
@@ -139,7 +146,9 @@
       ],
       "priorEvidencePrs": [],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-04"
+      "planSection": "FBA-04",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-05",
@@ -162,7 +171,9 @@
         15
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-05"
+      "planSection": "FBA-05",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-06",
@@ -185,7 +196,9 @@
         8
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-06"
+      "planSection": "FBA-06",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-07",
@@ -211,7 +224,9 @@
         14
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-07"
+      "planSection": "FBA-07",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-08",
@@ -238,7 +253,9 @@
         14
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-08"
+      "planSection": "FBA-08",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-09",
@@ -262,7 +279,9 @@
         1
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-09"
+      "planSection": "FBA-09",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-10",
@@ -288,7 +307,9 @@
         21
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-10"
+      "planSection": "FBA-10",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-11",
@@ -315,7 +336,9 @@
         2
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-11"
+      "planSection": "FBA-11",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-12",
@@ -337,7 +360,9 @@
         1
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-12"
+      "planSection": "FBA-12",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-13",
@@ -359,7 +384,9 @@
       "externalPrerequisites": [],
       "priorEvidencePrs": [],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-13"
+      "planSection": "FBA-13",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-14",
@@ -383,7 +410,9 @@
       ],
       "priorEvidencePrs": [],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-14"
+      "planSection": "FBA-14",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-15",
@@ -408,7 +437,9 @@
         7
       ],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-15"
+      "planSection": "FBA-15",
+      "contributingPrs": [],
+      "externalDependencies": []
     },
     {
       "id": "FBA-16",
@@ -453,7 +484,9 @@
       ],
       "priorEvidencePrs": [],
       "planPath": "docs/DEVELOPMENT_PLAN.md",
-      "planSection": "FBA-16"
+      "planSection": "FBA-16",
+      "contributingPrs": [],
+      "externalDependencies": []
     }
   ],
   "pullRequests": [
