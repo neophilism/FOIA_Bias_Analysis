@@ -2,5 +2,6 @@
   "repository": "neophilism/FOIA_Bias_Analysis",
   "deprecated": true,
   "redirectTo": "registry/prs.json",
-  "instructions": "Retired duplicate plan. The sole active PR registry is registry/prs.json; see registry/PR_FORMAT.md. Consumers read that path directly."
+  "developmentPlan": "docs/DEVELOPMENT_PLAN.md",
+  "instructions": "Canonical structured PR units, planned totals and completion mappings live only in registry/prs.json. Read docs/DEVELOPMENT_PLAN.md and docs/HANDOFF_STATUS.md. Do not edit a duplicate milestone list here."
 }
