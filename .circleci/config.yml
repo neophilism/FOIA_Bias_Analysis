@@ -1,0 +1,24 @@
+version: 2.1
+
+# Current source is a legacy ingestion scaffold. Do not call this full bias
+# statistics acceptance: production corpus consumer is not implemented.
+jobs:
+  current-document-and-code-integrity:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Approved plan/PR order checks
+          command: python3 scripts/validate_plan.py
+      - run:
+          name: Compile present Python source without external paid APIs
+          command: python3 -m compileall -q foia_bias scripts main.py
+      - run:
+          name: Verify status evidence record integrity only
+          command: python3 scripts/validate_e2eesa_status.py
+workflows:
+  current-scope-only:
+    jobs:
+      - current-document-and-code-integrity
