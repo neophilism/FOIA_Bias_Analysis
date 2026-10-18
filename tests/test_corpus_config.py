@@ -13,6 +13,10 @@ class CorpusConfigTests(unittest.TestCase):
     def test_path_escape(self):
         x=valid();x["corpus"]["manifest_path"]="../secret"
         with self.assertRaises(ValueError):validate_corpus_config(x)
+    def test_cross_platform_path_escape(self):
+        for path in ("..\\\\private\\\\manifest.json", "fixtures/manifest.json\\x00", "https://example.test/manifest.json"):
+            x=valid();x["corpus"]["manifest_path"]=path
+            with self.assertRaises(ValueError):validate_corpus_config(x)
     def test_wrong_mode(self):
         x=valid();x["corpus"]["mode"]="crawler"
         with self.assertRaises(ValueError):validate_corpus_config(x)
