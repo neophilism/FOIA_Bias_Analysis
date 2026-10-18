@@ -20,11 +20,11 @@ def main(argv: list[str] | None = None) -> int:
         command = commands.add_parser(
             name,
             help=("Validate a corpus configuration offline" if name == "inspect"
-                  else "Fail closed until the snapshot consumer is implemented"),
+                  else "Verify the complete read-only snapshot (no labeling or analysis)"),
         )
         command.add_argument(
-            "--config", default="corpus-config.yaml",
-            help="Read-only corpus YAML/JSON config (default: corpus-config.yaml)",
+            "--config", default="corpus-config.json",
+            help="Read-only corpus JSON config; YAML requires optional PyYAML",
         )
     args = parser.parse_args(argv)
     try:
@@ -48,13 +48,16 @@ def main(argv: list[str] | None = None) -> int:
         }, sort_keys=True))
         return 0
 
-    print(
-        "Read-only corpus consumer is not implemented. No snapshot was read, "
-        "source collector was invoked, or analysis was run.",
-        file=sys.stderr,
-    )
-    return 2
+    try:
+        from foia_bias.corpus import verify_snapshot
+        summary = verify_snapshot(config, args.config)
+    except (OSError, ValueError, RecursionError) as exc:
+        print(f"Invalid corpus snapshot: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(summary, sort_keys=True))
+    return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

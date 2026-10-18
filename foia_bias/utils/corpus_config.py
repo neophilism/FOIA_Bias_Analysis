@@ -10,10 +10,14 @@ def validate_corpus_config(data):
     corpus = data.get("corpus")
     if not isinstance(corpus, dict) or corpus.get("mode") != "snapshot":
         raise ValueError("corpus.mode must be snapshot")
+    if set(data) != {"corpus", "cohort"}:
+        raise ValueError("Unsupported top-level settings; legacy collection is disabled")
+    if set(corpus) != {"mode", "manifest_path", "fixture_mode", "batch_size"}:
+        raise ValueError("Unsupported corpus settings; population caps are not allowed")
     path = corpus.get("manifest_path")
     if not isinstance(path, str) or not path.strip():
         raise ValueError("corpus.manifest_path is required")
-    if (Path(path).is_absolute() or ".." in Path(path).parts or "://" in path
+    if (Path(path).is_absolute() or ".." in Path(path).parts or ":" in path
             or chr(92) in path or chr(0) in path):
         raise ValueError("manifest_path must be relative")
     if not isinstance(corpus.get("fixture_mode"), bool):
@@ -24,6 +28,8 @@ def validate_corpus_config(data):
     cohort = data.get("cohort")
     if not isinstance(cohort, dict):
         raise ValueError("cohort is required")
+    if set(cohort) != {"start_date", "end_date", "include_incomplete_administrations"}:
+        raise ValueError("Unsupported cohort settings")
     try:
         start = date.fromisoformat(cohort["start_date"])
         end = date.fromisoformat(cohort["end_date"])
@@ -42,9 +48,14 @@ def load_config(path):
         raise FileNotFoundError(path)
     if path.suffix.lower() in (".yaml", ".yml"):
         import yaml
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        try:
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:
+            raise ValueError("Malformed YAML configuration") from exc
     elif path.suffix.lower() == ".json":
-        data = json.loads(path.read_text(encoding="utf-8"))
+        from foia_bias.corpus import strict_json
+        data = strict_json(path.read_text(encoding="utf-8"))
     else:
         raise ValueError("Unsupported config format")
     return validate_corpus_config(data)
+

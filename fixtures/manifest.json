@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "snapshot_id": "synthetic-multisource-v1",
+  "producer": "synthetic-fixture",
+  "fixture_mode": true,
+  "records": {
+    "path": "fixtures/records.jsonl",
+    "sha256": "c64aaa696f09daca5697bcd426a2d0c1e3099af915da4605a516f58d4e5d90b0",
+    "count": 5
+  }
+}

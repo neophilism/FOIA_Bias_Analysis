@@ -58,7 +58,7 @@ class OfflineCliTests(unittest.TestCase):
             errors = io.StringIO()
             with contextlib.redirect_stderr(errors):
                 self.assertEqual(main.main(["run", "--config", str(path)]), 2)
-            self.assertIn("No snapshot was read", errors.getvalue())
+            self.assertIn("Invalid corpus snapshot", errors.getvalue())
             self.assertNotIn("foia_bias.pipeline", sys.modules)
             self.assertFalse((Path(directory) / "data").exists())
 
@@ -73,3 +73,4 @@ class OfflineCliTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
