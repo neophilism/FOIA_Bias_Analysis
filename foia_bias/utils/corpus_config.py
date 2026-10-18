@@ -14,7 +14,7 @@ def validate_corpus_config(data):
     if not isinstance(path, str) or not path.strip():
         raise ValueError("corpus.manifest_path is required")
     if (Path(path).is_absolute() or ".." in Path(path).parts or "://" in path
-            or "\\\\" in path or "\\x00" in path):
+            or chr(92) in path or chr(0) in path):
         raise ValueError("manifest_path must be relative")
     if not isinstance(corpus.get("fixture_mode"), bool):
         raise ValueError("corpus.fixture_mode must be boolean")
