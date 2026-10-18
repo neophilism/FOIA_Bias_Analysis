@@ -2,7 +2,6 @@
 from datetime import date
 from pathlib import Path
 import json
-import yaml
 
 
 def validate_corpus_config(data):
@@ -14,7 +13,8 @@ def validate_corpus_config(data):
     path = corpus.get("manifest_path")
     if not isinstance(path, str) or not path.strip():
         raise ValueError("corpus.manifest_path is required")
-    if Path(path).is_absolute() or ".." in Path(path).parts or "://" in path:
+    if (Path(path).is_absolute() or ".." in Path(path).parts or "://" in path
+            or "\\\\" in path or "\\x00" in path):
         raise ValueError("manifest_path must be relative")
     if not isinstance(corpus.get("fixture_mode"), bool):
         raise ValueError("corpus.fixture_mode must be boolean")
@@ -41,6 +41,7 @@ def load_config(path):
     if not path.exists():
         raise FileNotFoundError(path)
     if path.suffix.lower() in (".yaml", ".yml"):
+        import yaml
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     elif path.suffix.lower() == ".json":
         data = json.loads(path.read_text(encoding="utf-8"))

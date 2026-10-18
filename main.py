@@ -1,75 +1,60 @@
-"""Typer-based CLI for running the FOIA bias pipeline."""
+"""Offline, import-safe entry point for the read-only FOIA corpus consumer.
+
+The historical source collectors remain in legacy modules for migration only.
+No default command imports or invokes them.
+"""
 from __future__ import annotations
 
+import argparse
+import json
+import sys
 from pathlib import Path
-from typing import Optional
-
-import typer
-
-from foia_bias.pipeline import Pipeline
-from foia_bias.utils.config_loader import load_config
-
-app = typer.Typer(help="FOIA partisan bias pipeline")
-ingest_app = typer.Typer(help="Ingestion subcommands")
-analysis_app = typer.Typer(help="Analysis subcommands")
-app.add_typer(ingest_app, name="ingest")
-app.add_typer(analysis_app, name="analyze")
 
 
-def load_pipeline(config_path: str) -> Pipeline:
-    """Load config from disk and build a ready-to-run pipeline."""
-    config = load_config(config_path)
-    return Pipeline(config)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="FOIA Bias Analysis: read-only Aggregator corpus workflow (development)"
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+    for name in ("inspect", "run"):
+        command = commands.add_parser(
+            name,
+            help=("Validate a corpus configuration offline" if name == "inspect"
+                  else "Fail closed until the snapshot consumer is implemented"),
+        )
+        command.add_argument(
+            "--config", default="corpus-config.yaml",
+            help="Read-only corpus YAML/JSON config (default: corpus-config.yaml)",
+        )
+    args = parser.parse_args(argv)
+    try:
+        from foia_bias.utils.corpus_config import load_config
+        config = load_config(Path(args.config))
+    except (FileNotFoundError, OSError, ValueError, ImportError) as exc:
+        print(f"Invalid corpus configuration: {exc}", file=sys.stderr)
+        return 2
 
+    corpus = config["corpus"]
+    cohort = config["cohort"]
+    if args.command == "inspect":
+        print(json.dumps({
+            "mode": corpus["mode"],
+            "manifest_path": corpus["manifest_path"],
+            "fixture_mode": corpus["fixture_mode"],
+            "batch_size": corpus["batch_size"],
+            "cohort_start": cohort["start_date"],
+            "cohort_end": cohort["end_date"],
+            "status": "configuration-valid; snapshot-not-verified",
+        }, sort_keys=True))
+        return 0
 
-@app.command()
-def run(config: str = typer.Option("config.yaml", help="Path to YAML/JSON config")):
-    """Run all enabled sources end-to-end."""
-    pipeline = load_pipeline(config)
-    pipeline.run_all()
-
-
-@ingest_app.command("muckrock")
-def ingest_muckrock(config: str = typer.Option("config.yaml")):
-    pipeline = load_pipeline(config)
-    pipeline.process_muckrock()
-
-
-@ingest_app.command("agency-logs")
-def ingest_agency_logs(config: str = typer.Option("config.yaml")):
-    pipeline = load_pipeline(config)
-    pipeline.process_agency_logs()
-
-
-@ingest_app.command("reading-rooms")
-def ingest_reading_rooms(config: str = typer.Option("config.yaml")):
-    pipeline = load_pipeline(config)
-    pipeline.process_reading_rooms()
-
-
-@ingest_app.command("foia-gov")
-def ingest_foia_gov(config: str = typer.Option("config.yaml")):
-    pipeline = load_pipeline(config)
-    pipeline.process_foia_gov_annual()
-
-
-@analysis_app.command("wrongdoing")
-def analyze_wrongdoing(
-    config: str = typer.Option("config.yaml"),
-    source: Optional[str] = typer.Option(None, help="Optional source filter (e.g., muckrock)"),
-):
-    pipeline = load_pipeline(config)
-    typer.echo(pipeline.analyze_wrongdoing(source))
-
-
-@analysis_app.command("favorability")
-def analyze_favorability(
-    config: str = typer.Option("config.yaml"),
-    source: Optional[str] = typer.Option(None, help="Optional source filter"),
-):
-    pipeline = load_pipeline(config)
-    typer.echo(pipeline.analyze_favorability(source))
+    print(
+        "Read-only corpus consumer is not implemented. No snapshot was read, "
+        "source collector was invoked, or analysis was run.",
+        file=sys.stderr,
+    )
+    return 2
 
 
 if __name__ == "__main__":
-    app()
+    raise SystemExit(main())

@@ -4,7 +4,7 @@ Analyze the massive shared corpus compiled by [FOIA_Aggregator](https://github.c
 
 Start with the [development plan](docs/DEVELOPMENT_PLAN.md), [handoff status](docs/HANDOFF_STATUS.md) and [canonical structured PR registry](registry/prs.json). Plan version 3 records the owner's October 11 corpus correction and comparable-period clarification. The completed-term comparison excludes the ongoing incomplete second Trump term; the Aggregator can continue collecting newer records. Equal-duration term windows and exposure-normalized pooled comparisons are explicit requirements.
 
-The current application code remains a legacy source-ingestion scaffold. The corpus consumer is planned, not yet implemented. Next: **FBA-01**, then the corpus identity/checkpoint/import milestones. Validate documentation with `python scripts/validate_plan.py`.
+The default CLI is now an offline corpus configuration boundary: `python main.py --help` needs no source/model keys; `python main.py inspect --config corpus-config.yaml` validates configuration; `python main.py run` fails closed until the read-only snapshot consumer is implemented. Historical collector code remains for migration but is not imported or launched by the default CLI. The corpus consumer is planned, not yet implemented. Next: **FBA-01**, then the corpus identity/checkpoint/import milestones. Validate documentation with `python scripts/validate_plan.py`.
 
 ## Historical implementation reference
 
