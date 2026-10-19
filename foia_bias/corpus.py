@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from pathlib import Path, PurePosixPath
 
 MAX_MANIFEST_BYTES = 1024 * 1024
 MAX_RECORD_BYTES = 16 * 1024 * 1024
+MAX_JSON_DEPTH = 64
 
 
 def local_path(root: Path, value: str) -> Path:
@@ -29,6 +31,30 @@ def local_path(root: Path, value: str) -> Path:
 
 
 def strict_json(text):
+    if not isinstance(text, str):
+        raise ValueError("JSON input must be UTF-8 text")
+    # Bound nesting before constructing objects; ignore delimiters in strings.
+    # This is independent of the interpreter's recursion limit. json.loads still
+    # performs all grammar validation; this scan never accepts syntax itself.
+    depth = 0
+    in_string = escaped = False
+    for character in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+        elif character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > MAX_JSON_DEPTH:
+                raise ValueError("JSON nesting exceeds parser boundary")
+        elif character in "]}":
+            depth -= 1
+
     def pairs(items):
         result = {}
         for key, value in items:
@@ -40,11 +66,24 @@ def strict_json(text):
     def bad_constant(value):
         raise ValueError("non-finite JSON number")
 
-    return json.loads(text, object_pairs_hook=pairs, parse_constant=bad_constant)
+    def finite_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError("non-finite JSON number")
+        return number
+
+    try:
+        return json.loads(text, object_pairs_hook=pairs,
+                          parse_constant=bad_constant, parse_float=finite_float)
+    except RecursionError as exc:
+        raise ValueError("JSON nesting exceeds parser boundary") from exc
 
 
 def verify_snapshot(config, config_path):
     """Verify all bytes and rows without retaining a corpus or writing any file."""
+    # Direct library callers must satisfy the same boundary as the CLI.
+    from foia_bias.utils.corpus_config import validate_corpus_config
+    validate_corpus_config(config)
     root = Path(config_path).resolve(strict=True).parent
     corpus = config["corpus"]
     manifest_path = local_path(root, corpus["manifest_path"])
