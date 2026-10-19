@@ -4,7 +4,24 @@ Analyze the massive shared corpus compiled by [FOIA_Aggregator](https://github.c
 
 Start with the [development plan](docs/DEVELOPMENT_PLAN.md), [handoff status](docs/HANDOFF_STATUS.md) and [canonical structured PR registry](registry/prs.json). Plan version 3 records the owner's October 11 corpus correction and comparable-period clarification. The completed-term comparison excludes the ongoing incomplete second Trump term; the Aggregator can continue collecting newer records. Equal-duration term windows and exposure-normalized pooled comparisons are explicit requirements.
 
-The current application code remains a legacy source-ingestion scaffold. The corpus consumer is planned, not yet implemented. Next: **FBA-01**, then the corpus identity/checkpoint/import milestones. Validate documentation with `python scripts/validate_plan.py`.
+The default CLI consumes a frozen local snapshot through a read-only validation boundary. It never imports source collectors or model clients. `run` currently verifies the complete snapshot census; labeling and statistical analysis belong to later work units and are not claimed. The bundled five-row dataset is explicitly synthetic.
+
+## Reproducible offline baseline
+
+Tested with CPython **3.12.14** on Linux, recorded in `.python-version`. The JSON baseline has **zero third-party runtime dependencies** (`requirements.txt`); it needs no source/model credentials, downloads, network or paid service:
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install --no-index -r requirements.txt
+.venv/bin/python main.py --help
+.venv/bin/python main.py inspect --config corpus-config.json
+.venv/bin/python main.py run --config corpus-config.json
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+`run` must report `fixture-verified`, `record_count: 5`, `batch_count: 3`, `analysis_performed: false` and `research_eligible: false`. Changing batch size affects batch count, never the population census. Invalid settings, missing files, path escapes, checksum/count errors and fixture/live mismatches fail with exit status 2 and no success output. No analysis output or source data is written. The JSON path is the supported dependency-free setup; optional YAML support uses the separately pinned `requirements-yaml.txt` (PyYAML 6.0.3). Legacy heavyweight dependencies remain in `requirements-legacy.txt`; their environment is not locked or certified by this baseline.
+
+See [the snapshot contract](docs/FBA_01_CORPUS_CONTRACT.md) for the provisional local manifest schema, size limits, trust boundary and remaining CI gate. Live Aggregator contract integration remains FBA-04. Next: finish the FBA-01 CI gate, then the approved identity/checkpoint/import milestones.
 
 ## Historical implementation reference
 
@@ -199,3 +216,4 @@ MIT License. See `LICENSE`.
 ## End-to-End Everywhere progress
 
 The canonical [security/e2eesa-status.json](security/e2eesa-status.json) records standard implementation, complete testing and independent expert review separately. Engine Room reads it automatically from GitHub. All initial stages are pending; existing profile locks and approved decisions remain authoritative. Read [adoption and independent-account instructions](docs/E2EESA_ADOPTION.md), and run `python3 scripts/validate_e2eesa_status.py`. Record validation does not establish product security or certification.
+
