@@ -1,7 +1,10 @@
 """Validate immutable corpus snapshot configuration without network access."""
 from datetime import date
 from pathlib import Path
-import json
+import re
+
+MAX_CONFIG_BYTES = 64 * 1024
+MAX_YAML_DEPTH = 32
 
 
 def validate_corpus_config(data):
@@ -30,6 +33,10 @@ def validate_corpus_config(data):
         raise ValueError("cohort is required")
     if set(cohort) != {"start_date", "end_date", "include_incomplete_administrations"}:
         raise ValueError("Unsupported cohort settings")
+    if any(not isinstance(cohort[key], str)
+           or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", cohort[key])
+           for key in ("start_date", "end_date")):
+        raise ValueError("cohort requires canonical ISO dates (YYYY-MM-DD)")
     try:
         start = date.fromisoformat(cohort["start_date"])
         end = date.fromisoformat(cohort["end_date"])
@@ -42,20 +49,58 @@ def validate_corpus_config(data):
     return data
 
 
+
+def _strict_yaml(text):
+    # Optional parser remains lazy: JSON/help never imports third-party code.
+    import yaml
+
+    class ConfigLoader(yaml.SafeLoader):
+        def construct_mapping(self, node, deep=False):
+            if not isinstance(node, yaml.nodes.MappingNode):
+                raise ValueError("YAML configuration mapping is invalid")
+            result = {}
+            for key_node, value_node in node.value:
+                if (not isinstance(key_node, yaml.nodes.ScalarNode)
+                        or key_node.tag != "tag:yaml.org,2002:str"):
+                    raise ValueError("YAML mapping keys must be strings; merge keys unsupported")
+                key = self.construct_object(key_node, deep=deep)
+                if key in result:
+                    raise ValueError("duplicate YAML key")
+                result[key] = self.construct_object(value_node, deep=deep)
+            return result
+
+    try:
+        # This flat configuration never needs object sharing or recursive aliases.
+        # Scan parser events first, before constructing any YAML object graph.
+        depth = 0
+        for event in yaml.parse(text, Loader=yaml.SafeLoader):
+            if getattr(event, "anchor", None) is not None:
+                raise ValueError("YAML anchors and aliases are not supported")
+            if isinstance(event, (yaml.events.MappingStartEvent, yaml.events.SequenceStartEvent)):
+                depth += 1
+                if depth > MAX_YAML_DEPTH:
+                    raise ValueError("YAML nesting exceeds configuration boundary")
+            elif isinstance(event, (yaml.events.MappingEndEvent, yaml.events.SequenceEndEvent)):
+                depth -= 1
+        return yaml.load(text, Loader=ConfigLoader)
+    except (yaml.YAMLError, RecursionError) as exc:
+        # Parser diagnostics may contain source lines; never echo configuration.
+        raise ValueError("Malformed YAML configuration") from exc
+
+
 def load_config(path):
     path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(path)
-    if path.suffix.lower() in (".yaml", ".yml"):
-        import yaml
-        try:
-            data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        except yaml.YAMLError as exc:
-            raise ValueError("Malformed YAML configuration") from exc
-    elif path.suffix.lower() == ".json":
-        from foia_bias.corpus import strict_json
-        data = strict_json(path.read_text(encoding="utf-8"))
-    else:
+    suffix = path.suffix.lower()
+    if suffix not in (".json", ".yaml", ".yml"):
         raise ValueError("Unsupported config format")
+    with path.open("rb") as stream:
+        raw = stream.read(MAX_CONFIG_BYTES + 1)
+    if len(raw) > MAX_CONFIG_BYTES:
+        raise ValueError("configuration exceeds 64 KiB boundary")
+    text = raw.decode("utf-8")
+    if suffix in (".yaml", ".yml"):
+        data = _strict_yaml(text)
+    else:
+        from foia_bias.corpus import strict_json
+        data = strict_json(text)
     return validate_corpus_config(data)
-
