@@ -1,0 +1,29 @@
+name: FOIA corpus offline acceptance
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  corpus-offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12.14'
+      - name: Confirm interpreter and dependency-free baseline
+        run: |
+          python -c "import sys; assert sys.version_info[:3] == (3, 12, 14)"
+          python -c "from pathlib import Path; assert not Path('requirements.txt').read_text().strip()"
+      - name: Execute actual offline corpus tests
+        run: python -m unittest discover -s tests -v
+      - name: Verify default CLI and complete synthetic census
+        run: |
+          python main.py --help
+          python main.py inspect --config corpus-config.json
+          python main.py run --config corpus-config.json > "$RUNNER_TEMP/corpus-summary.json"
+          python -c "import json,os,pathlib; r=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'corpus-summary.json').read_text()); assert r['status']=='fixture-verified'; assert r['record_count']==5; assert r['batch_count']==3; assert r['analysis_performed'] is False; assert r['research_eligible'] is False"
