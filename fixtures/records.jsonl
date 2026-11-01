@@ -1,0 +1,5 @@
+{"record_id": "synthetic-1", "source_family": "agency-log", "synthetic": true, "text": "Synthetic fixture 1, not a real FOIA record."}
+{"record_id": "synthetic-2", "source_family": "reading-room", "synthetic": true, "text": "Synthetic fixture 2, not a real FOIA record."}
+{"record_id": "synthetic-3", "source_family": "muckrock", "synthetic": true, "text": "Synthetic fixture 3, not a real FOIA record."}
+{"record_id": "synthetic-4", "source_family": "annual", "synthetic": true, "text": "Synthetic fixture 4, not a real FOIA record."}
+{"record_id": "synthetic-5", "source_family": "other", "synthetic": true, "text": "Synthetic fixture 5, not a real FOIA record."}

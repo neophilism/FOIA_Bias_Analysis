@@ -1,0 +1,13 @@
+{
+  "corpus": {
+    "mode": "snapshot",
+    "manifest_path": "fixtures/manifest.json",
+    "fixture_mode": true,
+    "batch_size": 2
+  },
+  "cohort": {
+    "start_date": "1993-01-20",
+    "end_date": "2025-01-20",
+    "include_incomplete_administrations": false
+  }
+}
