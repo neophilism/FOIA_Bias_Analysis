@@ -23,8 +23,13 @@ def local_path(root: Path, value: str) -> Path:
             or PurePosixPath(value).is_absolute()
             or ".." in PurePosixPath(value).parts):
         raise ValueError("snapshot paths must be relative local paths")
-    root = root.resolve(strict=True)
-    candidate = (root / value).resolve(strict=True)
+    try:
+        root = root.resolve(strict=True)
+        candidate = (root / value).resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        # CPython 3.12 raises RuntimeError for symlink cycles; newer versions
+        # use OSError. Both are invalid snapshot input, not an uncaught crash.
+        raise ValueError("snapshot path cannot be resolved") from exc
     if not candidate.is_relative_to(root) or not candidate.is_file():
         raise ValueError("snapshot path escapes configuration directory or is not a file")
     return candidate
@@ -147,3 +152,4 @@ def verify_snapshot(config, config_path):
         "record_bytes": size, "batch_count": batches,
         "analysis_performed": False, "research_eligible": False,
     }
+
