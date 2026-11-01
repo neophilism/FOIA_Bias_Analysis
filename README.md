@@ -21,7 +21,7 @@ python3.12 -m venv .venv
 
 `run` must report `fixture-verified`, `record_count: 5`, `batch_count: 3`, `analysis_performed: false` and `research_eligible: false`. Changing batch size affects batch count, never the population census. Invalid settings, missing files, path escapes, checksum/count errors and fixture/live mismatches fail with exit status 2 and no success output. No analysis output or source data is written. The JSON path is the supported dependency-free setup; optional YAML support uses the separately pinned `requirements-yaml.txt` (PyYAML 6.0.3). Legacy heavyweight dependencies remain in `requirements-legacy.txt`; their environment is not locked or certified by this baseline.
 
-See [the snapshot contract](docs/FBA_01_CORPUS_CONTRACT.md) for the provisional local manifest schema, size limits, trust boundary and remaining CI gate. Live Aggregator contract integration remains FBA-04. Next: finish the FBA-01 CI gate, then the approved identity/checkpoint/import milestones.
+See [the snapshot contract](docs/FBA_01_CORPUS_CONTRACT.md) for the provisional local manifest schema, size limits, trust boundary and remaining CI gate. Live Aggregator contract integration remains FBA-04. The FBA-01 offline runtime acceptance gate runs in `.github/workflows/corpus-offline.yml` and must pass for the exact PR head. After that, the approved identity/checkpoint/import milestones remain; production research results are not claimed.
 
 ## Historical implementation reference
 

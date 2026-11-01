@@ -68,7 +68,4 @@ No real-corpus ingestion, provenance ledger or research acceptance is claimed.
 The offline suite covers import/help without keys, no-network fixture execution,
 full census, batch invariance, malformed config/JSON/manifest/rows, synthetic/live
 crossing, hashes/counts, bounded reads, symlink escape and read-only input checks.
-The preexisting GitHub checks validate source/registry/status integrity and compile
-Python but do not execute unittest. FBA-01 remains incomplete until substantive
-Python test CI is configured through an authorized workflow route and verified
-for the current PR head. Do not infer runtime test acceptance from compile checks.
+The `corpus-offline` GitHub Actions job in `.github/workflows/corpus-offline.yml` now runs CPython 3.12.14, the complete offline unittest suite and the default `inspect`/`run` CLI census on every PR and main push. This acceptance gate requires a successful check on the exact PR head; compilation-only checks are insufficient. This does not establish that a real Aggregator export is compatible (FBA-04) or that research labeling/statistics are complete.
